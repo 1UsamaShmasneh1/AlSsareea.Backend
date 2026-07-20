@@ -6,9 +6,10 @@ using Microsoft.AspNetCore.Mvc.Testing;
 
 namespace AlSsareea.IntegrationTests;
 
-public sealed class SystemEndpointsTests(ApiFactory factory) : IClassFixture<ApiFactory>
+[Collection(PostgresTestSuite.Name)]
+public sealed class SystemEndpointsTests(PostgresFixture fixture)
 {
-    private readonly HttpClient _client = factory.CreateClient(new WebApplicationFactoryClientOptions
+    private readonly HttpClient _client = fixture.ApiFactory.CreateClient(new WebApplicationFactoryClientOptions
     {
         BaseAddress = new Uri("https://localhost"),
     });
@@ -17,6 +18,16 @@ public sealed class SystemEndpointsTests(ApiFactory factory) : IClassFixture<Api
     public async Task HealthReturnsSuccess()
     {
         using HttpResponseMessage response = await _client.GetAsync("/health", CancellationToken.None);
+
+        Assert.Equal(HttpStatusCode.OK, response.StatusCode);
+    }
+
+    [Theory]
+    [InlineData("/health/live")]
+    [InlineData("/health/ready")]
+    public async Task HealthProbeReturnsSuccess(string path)
+    {
+        using HttpResponseMessage response = await _client.GetAsync(path, CancellationToken.None);
 
         Assert.Equal(HttpStatusCode.OK, response.StatusCode);
     }
