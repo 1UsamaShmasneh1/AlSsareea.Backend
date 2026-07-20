@@ -1,0 +1,49 @@
+# Build outputs
+[Bb]in/
+[Oo]bj/
+[Aa]rtifacts/
+
+# Test and coverage outputs
+[Tt]est[Rr]esults/
+[Cc]overage[Rr]esults/
+coverage.*
+*.coverage
+*.coveragexml
+
+# Visual Studio
+.vs/
+*.user
+*.suo
+*.userosscache
+*.sln.docstates
+
+# Visual Studio Code
+.vscode/*
+!.vscode/extensions.json
+!.vscode/settings.json
+
+# JetBrains Rider
+.idea/
+*.sln.iml
+
+# Operating systems
+.DS_Store
+Thumbs.db
+Desktop.ini
+
+# Local secrets and environment overrides
+.env
+.env.*
+!.env.example
+appsettings.Local.json
+appsettings.*.local.json
+secrets.json
+*.pfx
+*.p12
+*.key
+
+# Logs and temporary files
+*.log
+*.tmp
+*.bak
+~$*

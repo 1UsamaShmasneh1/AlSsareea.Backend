@@ -1,0 +1,8 @@
+<Project Sdk="Microsoft.NET.Sdk">
+  <ItemGroup>
+    <PackageReference Include="Microsoft.Extensions.DependencyInjection.Abstractions" />
+  </ItemGroup>
+  <ItemGroup>
+    <ProjectReference Include="..\AlSsareea.Modules.Identity.Application\AlSsareea.Modules.Identity.Application.csproj" />
+  </ItemGroup>
+</Project>

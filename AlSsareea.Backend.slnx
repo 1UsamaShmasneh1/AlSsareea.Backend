@@ -1,0 +1,22 @@
+<Solution>
+  <Folder Name="/src/">
+    <Project Path="src/AlSsareea.Api/AlSsareea.Api.csproj" />
+  </Folder>
+  <Folder Name="/src/BuildingBlocks/">
+    <Project Path="src/BuildingBlocks/AlSsareea.BuildingBlocks.Application/AlSsareea.BuildingBlocks.Application.csproj" />
+    <Project Path="src/BuildingBlocks/AlSsareea.BuildingBlocks.Contracts/AlSsareea.BuildingBlocks.Contracts.csproj" />
+    <Project Path="src/BuildingBlocks/AlSsareea.BuildingBlocks.Domain/AlSsareea.BuildingBlocks.Domain.csproj" />
+    <Project Path="src/BuildingBlocks/AlSsareea.BuildingBlocks.Infrastructure/AlSsareea.BuildingBlocks.Infrastructure.csproj" />
+  </Folder>
+  <Folder Name="/src/Modules/Identity/">
+    <Project Path="src/Modules/Identity/AlSsareea.Modules.Identity.Application/AlSsareea.Modules.Identity.Application.csproj" />
+    <Project Path="src/Modules/Identity/AlSsareea.Modules.Identity.Contracts/AlSsareea.Modules.Identity.Contracts.csproj" />
+    <Project Path="src/Modules/Identity/AlSsareea.Modules.Identity.Domain/AlSsareea.Modules.Identity.Domain.csproj" />
+    <Project Path="src/Modules/Identity/AlSsareea.Modules.Identity.Infrastructure/AlSsareea.Modules.Identity.Infrastructure.csproj" />
+  </Folder>
+  <Folder Name="/tests/">
+    <Project Path="tests/AlSsareea.ArchitectureTests/AlSsareea.ArchitectureTests.csproj" />
+    <Project Path="tests/AlSsareea.IntegrationTests/AlSsareea.IntegrationTests.csproj" />
+    <Project Path="tests/AlSsareea.UnitTests/AlSsareea.UnitTests.csproj" />
+  </Folder>
+</Solution>

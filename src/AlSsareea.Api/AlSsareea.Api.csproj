@@ -1,0 +1,12 @@
+<Project Sdk="Microsoft.NET.Sdk.Web">
+  <ItemGroup>
+    <PackageReference Include="Microsoft.AspNetCore.OpenApi" />
+    <PackageReference Include="Microsoft.OpenApi" />
+  </ItemGroup>
+  <ItemGroup>
+    <ProjectReference Include="..\BuildingBlocks\AlSsareea.BuildingBlocks.Application\AlSsareea.BuildingBlocks.Application.csproj" />
+    <ProjectReference Include="..\BuildingBlocks\AlSsareea.BuildingBlocks.Infrastructure\AlSsareea.BuildingBlocks.Infrastructure.csproj" />
+    <ProjectReference Include="..\Modules\Identity\AlSsareea.Modules.Identity.Application\AlSsareea.Modules.Identity.Application.csproj" />
+    <ProjectReference Include="..\Modules\Identity\AlSsareea.Modules.Identity.Infrastructure\AlSsareea.Modules.Identity.Infrastructure.csproj" />
+  </ItemGroup>
+</Project>
