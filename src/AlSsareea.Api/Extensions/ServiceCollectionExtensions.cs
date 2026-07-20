@@ -36,7 +36,7 @@ public static class ServiceCollectionExtensions
 
         services.AddBuildingBlocksInfrastructure();
         services.AddIdentityApplication();
-        services.AddIdentityInfrastructure();
+        services.AddIdentityInfrastructure(configuration);
 
         return services;
     }

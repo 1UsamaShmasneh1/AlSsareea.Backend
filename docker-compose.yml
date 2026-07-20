@@ -1,0 +1,24 @@
+name: alssareea
+
+services:
+  postgres:
+    image: postgis/postgis:17-3.5@sha256:404171ea9058c801f405af25d63b3b8e5c9e50f2759e49390dbcc3c7ee533f4d
+    container_name: alssareea-postgres
+    environment:
+      POSTGRES_DB: alssareea
+      POSTGRES_USER: alssareea
+      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD:-alssareea_dev_password}
+    ports:
+      - "5432:5432"
+    volumes:
+      - alssareea-postgres-data:/var/lib/postgresql/data
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U alssareea -d alssareea"]
+      interval: 5s
+      timeout: 5s
+      retries: 10
+      start_period: 10s
+    restart: unless-stopped
+
+volumes:
+  alssareea-postgres-data:

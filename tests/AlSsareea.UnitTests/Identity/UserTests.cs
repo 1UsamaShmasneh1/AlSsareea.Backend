@@ -17,7 +17,9 @@ public sealed class UserTests
         Assert.Equal(id, user.Id);
         Assert.Equal("+970500000000", user.PhoneNumber);
         Assert.Equal(PreferredLanguage.Arabic, user.PreferredLanguage);
+        Assert.Equal(UserStatus.PendingVerification, user.Status);
         Assert.Equal(CreatedAtUtc, user.CreatedAtUtc);
+        Assert.Equal(DateTimeKind.Utc, user.CreatedAtUtc.Kind);
     }
 
     [Theory]
@@ -58,5 +60,23 @@ public sealed class UserTests
             CreatedAtUtc);
 
         Assert.Equal(UserStatus.PendingVerification, user.Status);
+    }
+
+    [Fact]
+    public void UserIdWithValidValuePreservesValue()
+    {
+        Guid value = Guid.NewGuid();
+
+        var id = new UserId(value);
+
+        Assert.Equal(value, id.Value);
+    }
+
+    [Fact]
+    public void UserIdWithEmptyValueThrowsArgumentException()
+    {
+        Action action = () => _ = new UserId(Guid.Empty);
+
+        Assert.Throws<ArgumentException>(action);
     }
 }
