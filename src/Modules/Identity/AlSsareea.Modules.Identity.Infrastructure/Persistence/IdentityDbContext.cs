@@ -18,6 +18,9 @@ public sealed class IdentityDbContext(DbContextOptions<IdentityDbContext> option
     public DbSet<RefreshToken> RefreshTokens => Set<RefreshToken>();
     public DbSet<PasswordHistory> PasswordHistory => Set<PasswordHistory>();
     public DbSet<LoginHistory> LoginHistory => Set<LoginHistory>();
+    public DbSet<OtpChallenge> OtpChallenges => Set<OtpChallenge>();
+    public DbSet<IdempotencyRecord> IdempotencyRecords => Set<IdempotencyRecord>();
+    public DbSet<SecurityAuditRecord> SecurityAuditRecords => Set<SecurityAuditRecord>();
 
     public override int SaveChanges(bool acceptAllChangesOnSuccess)
     {
@@ -43,7 +46,7 @@ public sealed class IdentityDbContext(DbContextOptions<IdentityDbContext> option
     {
         bool changed = ChangeTracker.Entries()
             .Any(entry =>
-                entry.Entity is global::AlSsareea.Modules.Identity.Domain.LoginHistory or global::AlSsareea.Modules.Identity.Domain.PasswordHistory &&
+                entry.Entity is global::AlSsareea.Modules.Identity.Domain.LoginHistory or global::AlSsareea.Modules.Identity.Domain.PasswordHistory or global::AlSsareea.Modules.Identity.Domain.SecurityAuditRecord &&
                 entry.State is EntityState.Modified or EntityState.Deleted);
         if (changed)
         {

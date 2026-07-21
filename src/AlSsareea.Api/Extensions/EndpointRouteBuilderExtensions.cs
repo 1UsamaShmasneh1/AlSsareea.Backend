@@ -1,4 +1,5 @@
 using AlSsareea.Api.Configuration;
+using AlSsareea.Api.Endpoints;
 using Microsoft.AspNetCore.Diagnostics.HealthChecks;
 using Microsoft.Extensions.Options;
 
@@ -8,6 +9,7 @@ public static class EndpointRouteBuilderExtensions
 {
     public static WebApplication MapApiEndpoints(this WebApplication app)
     {
+        app.MapAuthenticationEndpoints();
         app.MapHealthChecks("/health").WithTags("System");
         app.MapHealthChecks("/health/live", new HealthCheckOptions
         {

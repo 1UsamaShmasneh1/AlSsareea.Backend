@@ -69,6 +69,30 @@ public readonly record struct LoginHistoryId : IIdentityId
     public override string ToString() => Value.ToString();
 }
 
+public readonly record struct OtpChallengeId : IIdentityId
+{
+    public OtpChallengeId(Guid value) { Value = IdentityId.Validate(value, nameof(OtpChallengeId)); }
+    public Guid Value { get; }
+    public static OtpChallengeId New() => new(Guid.NewGuid());
+    public override string ToString() => Value.ToString();
+}
+
+public readonly record struct IdempotencyRecordId : IIdentityId
+{
+    public IdempotencyRecordId(Guid value) { Value = IdentityId.Validate(value, nameof(IdempotencyRecordId)); }
+    public Guid Value { get; }
+    public static IdempotencyRecordId New() => new(Guid.NewGuid());
+    public override string ToString() => Value.ToString();
+}
+
+public readonly record struct SecurityAuditRecordId : IIdentityId
+{
+    public SecurityAuditRecordId(Guid value) { Value = IdentityId.Validate(value, nameof(SecurityAuditRecordId)); }
+    public Guid Value { get; }
+    public static SecurityAuditRecordId New() => new(Guid.NewGuid());
+    public override string ToString() => Value.ToString();
+}
+
 internal static class IdentityId
 {
     internal static Guid Validate(Guid value, string typeName) => value != Guid.Empty

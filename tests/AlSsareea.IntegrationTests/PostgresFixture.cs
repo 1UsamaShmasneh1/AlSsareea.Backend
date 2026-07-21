@@ -15,6 +15,7 @@ public sealed class PostgresFixture : IAsyncLifetime
         .Build();
 
     public ApiFactory ApiFactory { get; private set; } = null!;
+    public string ConnectionString => _container.GetConnectionString();
 
     public async Task InitializeAsync()
     {

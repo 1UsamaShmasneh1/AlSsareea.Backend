@@ -4,7 +4,7 @@ Backend foundation for **AlSsareea (عالسريع)**, a multilingual delivery p
 
 ## Status
 
-Phase 2 includes the durable Identity domain model, PostgreSQL mappings, migration, repositories for aggregate roots, optimistic concurrency, soft deletion, append-only security history, and Testcontainers coverage. Authentication and authorization flows remain intentionally out of scope.
+Phase 3 adds production-oriented authentication and authorization to the durable Phase 2 Identity model: PBKDF2 password hashing, JWT access tokens, rotating refresh tokens with replay response, durable sessions and devices, lockout, role/permission policies, OTP primitives, scoped idempotency, audit records, rate limiting, and security headers. See [the authentication architecture](docs/architecture/authentication.md).
 
 ## Requirements
 
@@ -46,6 +46,19 @@ dotnet user-secrets set "ConnectionStrings:IdentityDatabase" "Host=localhost;Por
 ```
 
 No production connection string is stored in the repository.
+
+## Authentication configuration
+
+Production must provide the following through environment variables or a secret manager. Startup validation rejects missing/weak JWT and OTP secrets and unsafe lifetimes or hashing parameters.
+
+```powershell
+$env:Authentication__Jwt__Issuer = "https://identity.example.com"
+$env:Authentication__Jwt__Audience = "alssareea-clients"
+$env:Authentication__Jwt__SigningKey = "<at-least-32-random-bytes>"
+$env:Authentication__Otp__Pepper = "<at-least-32-random-bytes>"
+```
+
+The checked-in Development values are conspicuous local placeholders, not production credentials. Replace them with user secrets for shared development environments. `Authentication:Otp:DevelopmentProviderEnabled` must be false in Production; startup fails otherwise.
 
 ## Migrations
 
@@ -92,6 +105,15 @@ dotnet dev-certs https --trust
 | `GET` | `/health/live` | Process liveness; independent of PostgreSQL |
 | `GET` | `/health/ready` | Readiness, including Identity PostgreSQL connectivity |
 | `GET` | `/api/system/info` | Non-sensitive service metadata |
+| `POST` | `/api/v1/auth/login` | Password login and token issuance |
+| `POST` | `/api/v1/auth/refresh` | Atomic refresh-token rotation |
+| `POST` | `/api/v1/auth/logout` | Revoke the current session |
+| `POST` | `/api/v1/auth/logout-all` | Revoke all sessions and rotate the security stamp |
+| `GET` | `/api/v1/auth/me` | Current authenticated identity |
+| `GET` | `/api/v1/auth/sessions` | Current user's sessions; requires `identity.sessions.read` |
+| `DELETE` | `/api/v1/auth/sessions/{sessionId}` | Revoke an owned session; requires `identity.sessions.revoke` |
+| `POST` | `/api/v1/auth/otp/challenges` | Create a development/test OTP challenge |
+| `POST` | `/api/v1/auth/otp/challenges/{challengeId}/verify` | Atomically consume an OTP |
 | `GET` | `/openapi/v1.json` | OpenAPI document in Development only |
 
 Future versioned business endpoints will use the `/api/v1` base path. The unversioned system endpoints are operational endpoints rather than business contracts.
@@ -100,7 +122,7 @@ Future versioned business endpoints will use the `/api/v1` base path. The unvers
 
 - `src/AlSsareea.Api`: HTTP composition root and minimal endpoints.
 - `src/BuildingBlocks`: framework-neutral domain and application abstractions, contracts, and shared infrastructure implementations.
-- `src/Modules/Identity`: Identity domain and persistence implementation; see its module README. It does not authenticate users yet.
+- `src/Modules/Identity`: Identity domain, authentication application contracts, and persistence/security implementation.
 - `tests`: unit, integration, and architecture tests.
 - `docs`: architecture notes and Architecture Decision Records.
 
@@ -118,4 +140,4 @@ Keep domain code independent of application, infrastructure, and ASP.NET Core. A
 - Do not use EF Core InMemory or SQLite for persistence integration tests.
 - Do not run migrations automatically in production.
 
-Identity owns schema `identity`, its own migration history, and ten tables documented in `docs/architecture/identity-domain.md`. PostGIS is enabled for future geographic modules, but Identity has no spatial entity.
+Identity owns schema `identity`, its own migration history, and thirteen tables documented in `docs/architecture/identity-domain.md`. PostGIS is enabled for future geographic modules, but Identity has no spatial entity.

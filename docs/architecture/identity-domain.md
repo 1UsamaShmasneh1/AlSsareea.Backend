@@ -1,4 +1,4 @@
-# Identity domain and persistence — Phase 2
+# Identity domain and persistence — Phases 2–3
 
 ## Domain model
 
@@ -34,6 +34,9 @@ All tables are in the `identity` schema and use snake_case names.
 | `refresh_tokens` | Hashed refresh-token lifecycle | unique token hash, expiry/self-replacement checks, ownership/lifecycle indexes |
 | `password_history` | Prior versioned password hashes | user and `(user_id, became_active_utc)` indexes, date check, append-only |
 | `login_history` | Hashed login-attempt audit | success/failure consistency checks, identifier/result/time and user-time indexes, append-only |
+| `otp_challenges` | Hashed, device-bound OTP lifecycle | destination/purpose, expiry and active-state indexes; attempt/expiry checks |
+| `idempotency_records` | Identity-scoped sensitive-operation deduplication | unique owner/operation/key hash and expiration index |
+| `security_audit` | Append-only authentication security events | event/time, user/time, session and device indexes; restricted foreign keys |
 
 GUIDs map to `uuid`, enums to `smallint`, UTC timestamps to `timestamp with time zone`, and IP addresses to `inet`. All constraint and index names are explicit. Every foreign key uses `RESTRICT`; there is no cascade deletion.
 
@@ -45,8 +48,8 @@ User, Role, Permission, and Device use independent `concurrency_stamp` tokens. D
 
 ## Migration and verification
 
-`InitializeIdentityDomain` creates only the Identity schema and its ten tables. Migrations are never applied by API startup. Testcontainers tests apply migrations to an empty PostgreSQL/PostGIS database, validate the model snapshot, constraints, uniqueness, filter bypass, lifecycle persistence, append-only behavior, mappings, delete policy, and an optimistic concurrency conflict.
+`InitializeIdentityDomain` creates only the original Identity schema and ten tables. The independent `AddAuthenticationAndAuthorization` migration adds the three Phase 3 tables plus refresh-token family/replay columns. Migrations are never applied by API startup. Testcontainers tests apply all migrations to an empty PostgreSQL/PostGIS database and verify that the EF model has no pending changes.
 
 ## Known limitations
 
-This phase supplies storage and domain lifecycle operations, not operational authentication. Login, registration, JWT, refresh-token rotation, OTP, MFA, authorization policies, password reset, external messaging, and onboarding remain unimplemented. Domain events are recorded in-memory only; no external side effects or integration-event publication is configured.
+Registration, social login, full MFA, password reset, production SMS/WhatsApp/email OTP delivery, customer/driver/merchant onboarding, and administrative user management remain out of scope. Domain events are recorded in-memory only; no external integration-event publication is configured.
