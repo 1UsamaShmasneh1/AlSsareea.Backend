@@ -123,9 +123,44 @@ internal sealed class RefreshTokenConfiguration : IEntityTypeConfiguration<Refre
     public void Configure(EntityTypeBuilder<RefreshToken> b)
     {
         b.ToTable("refresh_tokens", IdentityPersistenceConstants.Schema, t => { t.HasCheckConstraint("ck_refresh_tokens_expiry", "expires_utc > created_utc"); t.HasCheckConstraint("ck_refresh_tokens_not_self_replaced", "replaced_by_token_id IS NULL OR replaced_by_token_id <> id"); });
-        b.HasKey(x => x.Id).HasName("pk_refresh_tokens"); b.Property(x => x.Id).IdentityId(x => x.Value, x => new RefreshTokenId(x)); b.Property(x => x.UserId).IdentityId(x => x.Value, x => new UserId(x)); b.Property(x => x.DeviceId).HasConversion(x => x.HasValue ? x.Value.Value : (Guid?)null, x => x.HasValue ? new DeviceId(x.Value) : null).HasColumnType("uuid"); b.Property(x => x.LoginSessionId).IdentityId(x => x.Value, x => new LoginSessionId(x)); b.Property(x => x.TokenHash).HasConversion(x => x.Value, x => new RefreshTokenHash(x)).HasMaxLength(64).IsFixedLength(); b.Property(x => x.SecurityStampSnapshot).HasColumnType("uuid"); b.Property(x => x.CreatedUtc).Utc(); b.Property(x => x.ExpiresUtc).Utc(); b.Property(x => x.ConsumedUtc).Utc(); b.Property(x => x.RevokedUtc).Utc(); b.Property(x => x.RevocationReason).HasMaxLength(250); b.Property(x => x.ReplacedByTokenId).HasConversion(x => x.HasValue ? x.Value.Value : (Guid?)null, x => x.HasValue ? new RefreshTokenId(x.Value) : null).HasColumnType("uuid"); b.Property(x => x.CreatedByIpAddress).HasColumnType("inet"); b.Property(x => x.RevokedByIpAddress).HasColumnType("inet");
-        b.HasIndex(x => x.TokenHash).IsUnique().HasDatabaseName("ux_refresh_tokens_token_hash"); b.HasIndex(x => x.UserId).HasDatabaseName("ix_refresh_tokens_user_id"); b.HasIndex(x => x.DeviceId).HasDatabaseName("ix_refresh_tokens_device_id"); b.HasIndex(x => x.LoginSessionId).HasDatabaseName("ix_refresh_tokens_login_session_id"); b.HasIndex(x => x.ExpiresUtc).HasDatabaseName("ix_refresh_tokens_expires_utc"); b.HasIndex(x => x.RevokedUtc).HasDatabaseName("ix_refresh_tokens_revoked_utc"); b.HasIndex(x => x.ReplacedByTokenId).HasDatabaseName("ix_refresh_tokens_replaced_by_token_id");
+        b.HasKey(x => x.Id).HasName("pk_refresh_tokens"); b.Property(x => x.Id).IdentityId(x => x.Value, x => new RefreshTokenId(x)); b.Property(x => x.UserId).IdentityId(x => x.Value, x => new UserId(x)); b.Property(x => x.DeviceId).HasConversion(x => x.HasValue ? x.Value.Value : (Guid?)null, x => x.HasValue ? new DeviceId(x.Value) : null).HasColumnType("uuid"); b.Property(x => x.LoginSessionId).IdentityId(x => x.Value, x => new LoginSessionId(x)); b.Property(x => x.TokenHash).HasConversion(x => x.Value, x => new RefreshTokenHash(x)).HasMaxLength(64).IsFixedLength(); b.Property(x => x.SecurityStampSnapshot).HasColumnType("uuid"); b.Property(x => x.CreatedUtc).Utc(); b.Property(x => x.ExpiresUtc).Utc(); b.Property(x => x.ConsumedUtc).Utc(); b.Property(x => x.RevokedUtc).Utc(); b.Property(x => x.ReplayDetectedUtc).Utc(); b.Property(x => x.FamilyId).HasColumnType("uuid"); b.Property(x => x.RevocationReason).HasMaxLength(250); b.Property(x => x.ReplacedByTokenId).HasConversion(x => x.HasValue ? x.Value.Value : (Guid?)null, x => x.HasValue ? new RefreshTokenId(x.Value) : null).HasColumnType("uuid"); b.Property(x => x.CreatedByIpAddress).HasColumnType("inet"); b.Property(x => x.RevokedByIpAddress).HasColumnType("inet");
+        b.HasIndex(x => x.TokenHash).IsUnique().HasDatabaseName("ux_refresh_tokens_token_hash"); b.HasIndex(x => x.UserId).HasDatabaseName("ix_refresh_tokens_user_id"); b.HasIndex(x => x.DeviceId).HasDatabaseName("ix_refresh_tokens_device_id"); b.HasIndex(x => x.LoginSessionId).HasDatabaseName("ix_refresh_tokens_login_session_id"); b.HasIndex(x => x.FamilyId).HasDatabaseName("ix_refresh_tokens_family_id"); b.HasIndex(x => x.ExpiresUtc).HasDatabaseName("ix_refresh_tokens_expires_utc"); b.HasIndex(x => x.RevokedUtc).HasDatabaseName("ix_refresh_tokens_revoked_utc"); b.HasIndex(x => x.ReplacedByTokenId).HasDatabaseName("ix_refresh_tokens_replaced_by_token_id");
         b.HasOne<Device>().WithMany().HasForeignKey(x => x.DeviceId).OnDelete(DeleteBehavior.Restrict).HasConstraintName("fk_refresh_tokens_devices_device_id"); b.HasOne<LoginSession>().WithMany().HasForeignKey(x => x.LoginSessionId).OnDelete(DeleteBehavior.Restrict).HasConstraintName("fk_refresh_tokens_login_sessions_login_session_id"); b.HasOne<RefreshToken>().WithMany().HasForeignKey(x => x.ReplacedByTokenId).OnDelete(DeleteBehavior.Restrict).HasConstraintName("fk_refresh_tokens_refresh_tokens_replaced_by_token_id");
+    }
+}
+
+internal sealed class OtpChallengeConfiguration : IEntityTypeConfiguration<OtpChallenge>
+{
+    public void Configure(EntityTypeBuilder<OtpChallenge> b)
+    {
+        b.ToTable("otp_challenges", IdentityPersistenceConstants.Schema, t =>
+        {
+            t.HasCheckConstraint("ck_otp_challenges_purpose", "purpose BETWEEN 1 AND 4");
+            t.HasCheckConstraint("ck_otp_challenges_dates", "expires_utc > created_utc AND next_resend_utc > created_utc");
+            t.HasCheckConstraint("ck_otp_challenges_attempts", "failed_attempts >= 0 AND failed_attempts <= maximum_attempts AND maximum_attempts > 0");
+        });
+        b.HasKey(x => x.Id).HasName("pk_otp_challenges"); b.Property(x => x.Id).IdentityId(x => x.Value, x => new OtpChallengeId(x));
+        b.Property(x => x.DestinationHash).HasMaxLength(64).IsFixedLength(); b.Property(x => x.CodeHash).HasMaxLength(64).IsFixedLength(); b.Property(x => x.DeviceIdentifierHash).HasMaxLength(64).IsFixedLength(); b.Property(x => x.IpAddressHash).HasMaxLength(64).IsFixedLength(); b.Property(x => x.Purpose).HasConversion<short>().HasColumnType("smallint"); b.Property(x => x.CreatedUtc).Utc(); b.Property(x => x.ExpiresUtc).Utc(); b.Property(x => x.NextResendUtc).Utc(); b.Property(x => x.UsedUtc).Utc();
+        b.HasIndex(x => new { x.DestinationHash, x.Purpose }).HasDatabaseName("ix_otp_challenges_destination_hash_purpose"); b.HasIndex(x => x.ExpiresUtc).HasDatabaseName("ix_otp_challenges_expires_utc");
+    }
+}
+
+internal sealed class IdempotencyRecordConfiguration : IEntityTypeConfiguration<IdempotencyRecord>
+{
+    public void Configure(EntityTypeBuilder<IdempotencyRecord> b)
+    {
+        b.ToTable("idempotency_records", IdentityPersistenceConstants.Schema, t => t.HasCheckConstraint("ck_idempotency_records_expiry", "expires_utc > created_utc")); b.HasKey(x => x.Id).HasName("pk_idempotency_records"); b.Property(x => x.Id).IdentityId(x => x.Value, x => new IdempotencyRecordId(x)); b.Property(x => x.OwnerKey).HasMaxLength(128); b.Property(x => x.Operation).HasMaxLength(80); b.Property(x => x.KeyHash).HasMaxLength(64).IsFixedLength(); b.Property(x => x.RequestFingerprint).HasMaxLength(64).IsFixedLength(); b.Property(x => x.ResourceId).HasMaxLength(128); b.Property(x => x.CreatedUtc).Utc(); b.Property(x => x.ExpiresUtc).Utc();
+        b.HasIndex(x => new { x.OwnerKey, x.Operation, x.KeyHash }).IsUnique().HasDatabaseName("ux_idempotency_records_owner_operation_key_hash"); b.HasIndex(x => x.ExpiresUtc).HasDatabaseName("ix_idempotency_records_expires_utc");
+    }
+}
+
+internal sealed class SecurityAuditRecordConfiguration : IEntityTypeConfiguration<SecurityAuditRecord>
+{
+    public void Configure(EntityTypeBuilder<SecurityAuditRecord> b)
+    {
+        b.ToTable("security_audit", IdentityPersistenceConstants.Schema); b.HasKey(x => x.Id).HasName("pk_security_audit"); b.Property(x => x.Id).IdentityId(x => x.Value, x => new SecurityAuditRecordId(x)); b.Property(x => x.EventType).HasMaxLength(80); b.Property(x => x.UserId).HasConversion(x => x.HasValue ? x.Value.Value : (Guid?)null, x => x.HasValue ? new UserId(x.Value) : null).HasColumnType("uuid"); b.Property(x => x.SessionId).HasConversion(x => x.HasValue ? x.Value.Value : (Guid?)null, x => x.HasValue ? new LoginSessionId(x.Value) : null).HasColumnType("uuid"); b.Property(x => x.DeviceId).HasConversion(x => x.HasValue ? x.Value.Value : (Guid?)null, x => x.HasValue ? new DeviceId(x.Value) : null).HasColumnType("uuid"); b.Property(x => x.OccurredUtc).Utc(); b.Property(x => x.CorrelationId).HasMaxLength(128); b.Property(x => x.IpAddress).HasMaxLength(64); b.Property(x => x.UserAgent).HasMaxLength(512); b.Property(x => x.ResultCategory).HasMaxLength(80);
+        b.HasIndex(x => new { x.UserId, x.OccurredUtc }).HasDatabaseName("ix_security_audit_user_id_occurred_utc"); b.HasIndex(x => x.SessionId).HasDatabaseName("ix_security_audit_session_id"); b.HasIndex(x => x.EventType).HasDatabaseName("ix_security_audit_event_type");
+        b.HasOne<User>().WithMany().HasForeignKey(x => x.UserId).OnDelete(DeleteBehavior.Restrict).HasConstraintName("fk_security_audit_users_user_id"); b.HasOne<LoginSession>().WithMany().HasForeignKey(x => x.SessionId).OnDelete(DeleteBehavior.Restrict).HasConstraintName("fk_security_audit_login_sessions_session_id"); b.HasOne<Device>().WithMany().HasForeignKey(x => x.DeviceId).OnDelete(DeleteBehavior.Restrict).HasConstraintName("fk_security_audit_devices_device_id");
     }
 }
 

@@ -102,6 +102,38 @@ public sealed class User : AggregateRoot<UserId>
         RaiseDomainEvent(new UserPasswordChangedDomainEvent(Id, occurredUtc));
     }
 
+    public bool UnlockIfExpired(DateTime utcNow)
+    {
+        DomainRules.RequireUtc(utcNow, nameof(utcNow));
+        if (Status != UserStatus.Locked || LockoutEndUtc is null || LockoutEndUtc > utcNow) return false;
+        Status = UserStatus.Active; LockoutEndUtc = null; FailedLoginCount = 0; Touch(utcNow, null); RotateSecurityStamp();
+        return true;
+    }
+
+    public bool RecordFailedLogin(int maximumAttempts, TimeSpan lockoutDuration, DateTime utcNow)
+    {
+        DomainRules.RequireUtc(utcNow, nameof(utcNow));
+        if (maximumAttempts < 1 || lockoutDuration <= TimeSpan.Zero) throw new DomainException("Lockout policy is invalid.");
+        if (Status != UserStatus.Active) return false;
+        FailedLoginCount++; Touch(utcNow, null);
+        if (FailedLoginCount < maximumAttempts) return false;
+        Status = UserStatus.Locked; LockoutEndUtc = utcNow.Add(lockoutDuration); RotateSecurityStamp();
+        RaiseDomainEvent(new UserStatusChangedDomainEvent(Id, UserStatus.Active, UserStatus.Locked, utcNow));
+        return true;
+    }
+
+    public void ResetFailedLogins(DateTime utcNow)
+    {
+        DomainRules.RequireUtc(utcNow, nameof(utcNow));
+        if (FailedLoginCount == 0 && LockoutEndUtc is null) return;
+        FailedLoginCount = 0; LockoutEndUtc = null; Touch(utcNow, null);
+    }
+
+    public void RotateSecurityStampForSessionRevocation(DateTime utcNow)
+    {
+        EnsureNotDeleted(); Touch(utcNow, null); RotateSecurityStamp();
+    }
+
     public void AssignRole(RoleId roleId, DateTime assignedUtc, UserId? assignedByUserId = null)
     {
         EnsureNotDeleted(); DomainRules.RequireUtc(assignedUtc, nameof(assignedUtc));

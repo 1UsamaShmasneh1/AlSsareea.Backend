@@ -60,6 +60,24 @@ public sealed class DependencyRulesTests
     }
 
     [Fact]
+    public void IdentityApplicationDoesNotReferenceAspNetCore()
+    {
+        AssertDoesNotReference(typeof(IIdentityModule).Assembly, "Microsoft.AspNetCore");
+    }
+
+    [Fact]
+    public void CurrentUserAndAuthorizationImplementationsStayOutsideDomain()
+    {
+        Type[] apiTypes = typeof(Program).Assembly.GetTypes();
+        Type[] domainTypes = typeof(User).Assembly.GetTypes();
+
+        Assert.Contains(apiTypes, type => type.Name == "CurrentUser" && type.Namespace == "AlSsareea.Api.Security");
+        Assert.Contains(apiTypes, type => type.Name == "PermissionAuthorizationHandler" && type.Namespace == "AlSsareea.Api.Security");
+        Assert.DoesNotContain(domainTypes, type => typeof(ICurrentUser).IsAssignableFrom(type));
+        Assert.DoesNotContain(domainTypes, type => type.Name.Contains("AuthorizationHandler", StringComparison.Ordinal));
+    }
+
+    [Fact]
     public void IdentityDomainHasNoPersistenceDataAnnotations()
     {
         Type[] domainTypes = typeof(User).Assembly.GetTypes();
