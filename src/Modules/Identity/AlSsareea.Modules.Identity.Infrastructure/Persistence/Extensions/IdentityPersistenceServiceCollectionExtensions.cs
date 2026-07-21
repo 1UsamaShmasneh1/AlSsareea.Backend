@@ -1,5 +1,7 @@
 using AlSsareea.BuildingBlocks.Application;
+using AlSsareea.Modules.Identity.Application;
 using AlSsareea.Modules.Identity.Infrastructure.Persistence.Constants;
+using AlSsareea.Modules.Identity.Infrastructure.Persistence.Repositories;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
@@ -21,6 +23,9 @@ internal static class IdentityPersistenceServiceCollectionExtensions
             ConfigureIdentityDbContext(options, connectionString));
         services.AddScoped<IUnitOfWork>(serviceProvider =>
             serviceProvider.GetRequiredService<IdentityDbContext>());
+        services.AddScoped<IUserRepository, UserRepository>();
+        services.AddScoped<IRoleRepository, RoleRepository>();
+        services.AddScoped<IPermissionRepository, PermissionRepository>();
         services.AddHealthChecks()
             .AddDbContextCheck<IdentityDbContext>(
                 "identity_database",

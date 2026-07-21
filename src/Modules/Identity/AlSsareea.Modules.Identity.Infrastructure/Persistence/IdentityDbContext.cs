@@ -9,6 +9,27 @@ public sealed class IdentityDbContext(DbContextOptions<IdentityDbContext> option
     : DbContext(options), IUnitOfWork
 {
     public DbSet<User> Users => Set<User>();
+    public DbSet<Role> Roles => Set<Role>();
+    public DbSet<Permission> Permissions => Set<Permission>();
+    public DbSet<UserRole> UserRoles => Set<UserRole>();
+    public DbSet<RolePermission> RolePermissions => Set<RolePermission>();
+    public DbSet<Device> Devices => Set<Device>();
+    public DbSet<LoginSession> LoginSessions => Set<LoginSession>();
+    public DbSet<RefreshToken> RefreshTokens => Set<RefreshToken>();
+    public DbSet<PasswordHistory> PasswordHistory => Set<PasswordHistory>();
+    public DbSet<LoginHistory> LoginHistory => Set<LoginHistory>();
+
+    public override int SaveChanges(bool acceptAllChangesOnSuccess)
+    {
+        EnforceAppendOnlyHistory();
+        return base.SaveChanges(acceptAllChangesOnSuccess);
+    }
+
+    public override Task<int> SaveChangesAsync(bool acceptAllChangesOnSuccess, CancellationToken cancellationToken = default)
+    {
+        EnforceAppendOnlyHistory();
+        return base.SaveChangesAsync(acceptAllChangesOnSuccess, cancellationToken);
+    }
 
     protected override void OnModelCreating(ModelBuilder modelBuilder)
     {
@@ -16,5 +37,17 @@ public sealed class IdentityDbContext(DbContextOptions<IdentityDbContext> option
 
         modelBuilder.HasDefaultSchema(IdentityPersistenceConstants.Schema);
         modelBuilder.ApplyConfigurationsFromAssembly(typeof(IdentityDbContext).Assembly);
+    }
+
+    private void EnforceAppendOnlyHistory()
+    {
+        bool changed = ChangeTracker.Entries()
+            .Any(entry =>
+                entry.Entity is global::AlSsareea.Modules.Identity.Domain.LoginHistory or global::AlSsareea.Modules.Identity.Domain.PasswordHistory &&
+                entry.State is EntityState.Modified or EntityState.Deleted);
+        if (changed)
+        {
+            throw new InvalidOperationException("Identity history records are append-only.");
+        }
     }
 }
