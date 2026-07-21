@@ -4,7 +4,7 @@ Backend foundation for **AlSsareea (عالسريع)**, a multilingual delivery p
 
 ## Status
 
-This stage includes PostgreSQL/PostGIS, per-module EF Core persistence for Identity, migrations, readiness probes, and Testcontainers integration tests. Authentication, authorization, payments, maps, and delivery workflows remain intentionally out of scope.
+Phase 2 includes the durable Identity domain model, PostgreSQL mappings, migration, repositories for aggregate roots, optimistic concurrency, soft deletion, append-only security history, and Testcontainers coverage. Authentication and authorization flows remain intentionally out of scope.
 
 ## Requirements
 
@@ -100,7 +100,7 @@ Future versioned business endpoints will use the `/api/v1` base path. The unvers
 
 - `src/AlSsareea.Api`: HTTP composition root and minimal endpoints.
 - `src/BuildingBlocks`: framework-neutral domain and application abstractions, contracts, and shared infrastructure implementations.
-- `src/Modules/Identity`: Identity domain and layer skeleton; it does not yet authenticate users.
+- `src/Modules/Identity`: Identity domain and persistence implementation; see its module README. It does not authenticate users yet.
 - `tests`: unit, integration, and architecture tests.
 - `docs`: architecture notes and Architecture Decision Records.
 
@@ -118,4 +118,4 @@ Keep domain code independent of application, infrastructure, and ASP.NET Core. A
 - Do not use EF Core InMemory or SQLite for persistence integration tests.
 - Do not run migrations automatically in production.
 
-Identity currently owns schema `identity`, `IdentityDbContext`, and table `identity.users`. PostGIS is enabled for future geographic modules, but Identity has no spatial entity.
+Identity owns schema `identity`, its own migration history, and ten tables documented in `docs/architecture/identity-domain.md`. PostGIS is enabled for future geographic modules, but Identity has no spatial entity.

@@ -2,6 +2,7 @@ using System.Reflection;
 using AlSsareea.BuildingBlocks.Application;
 using AlSsareea.BuildingBlocks.Domain;
 using AlSsareea.Modules.Identity.Application;
+using AlSsareea.Modules.Identity.Contracts;
 using AlSsareea.Modules.Identity.Domain;
 using AlSsareea.Modules.Identity.Infrastructure.Persistence;
 
@@ -43,6 +44,43 @@ public sealed class DependencyRulesTests
     public void IdentityDomainDoesNotReferenceIdentityApplication()
     {
         AssertDoesNotReference(typeof(User).Assembly, typeof(IIdentityModule).Assembly.GetName().Name!);
+    }
+
+    [Fact]
+    public void IdentityDomainDoesNotReferenceAspNetCore()
+    {
+        AssertDoesNotReference(typeof(User).Assembly, "Microsoft.AspNetCore");
+    }
+
+    [Fact]
+    public void IdentityApplicationAndContractsDoNotReferenceInfrastructure()
+    {
+        AssertDoesNotReference(typeof(IIdentityModule).Assembly, ".Infrastructure");
+        AssertDoesNotReference(typeof(IIdentityIntegrationEvent).Assembly, ".Infrastructure");
+    }
+
+    [Fact]
+    public void IdentityDomainHasNoPersistenceDataAnnotations()
+    {
+        Type[] domainTypes = typeof(User).Assembly.GetTypes();
+        Assert.DoesNotContain(domainTypes.SelectMany(type => type.GetCustomAttributesData()), attribute =>
+            attribute.AttributeType.Namespace?.StartsWith("System.ComponentModel.DataAnnotations", StringComparison.Ordinal) == true);
+        Assert.DoesNotContain(domainTypes.SelectMany(type => type.GetProperties()).SelectMany(property => property.GetCustomAttributesData()), attribute =>
+            attribute.AttributeType.Namespace?.StartsWith("System.ComponentModel.DataAnnotations", StringComparison.Ordinal) == true);
+    }
+
+    [Fact]
+    public void RepositoriesExistOnlyForAggregateRoots()
+    {
+        string[] repositoryNames = typeof(IIdentityModule).Assembly.GetTypes()
+            .Concat(typeof(IdentityDbContext).Assembly.GetTypes())
+            .Where(type => type.Name.EndsWith("Repository", StringComparison.Ordinal))
+            .Select(type => type.Name.TrimStart('I'))
+            .Distinct(StringComparer.Ordinal)
+            .Order(StringComparer.Ordinal)
+            .ToArray();
+
+        Assert.Equal(["PermissionRepository", "RoleRepository", "UserRepository"], repositoryNames);
     }
 
     [Fact]
@@ -133,6 +171,7 @@ public sealed class DependencyRulesTests
         typeof(IClock).Assembly,
         typeof(User).Assembly,
         typeof(IIdentityModule).Assembly,
+        typeof(IIdentityIntegrationEvent).Assembly,
     };
 
     private static void AssertDoesNotReference(Assembly assembly, string forbiddenName)
