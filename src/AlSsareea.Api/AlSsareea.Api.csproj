@@ -9,5 +9,8 @@
     <ProjectReference Include="..\BuildingBlocks\AlSsareea.BuildingBlocks.Infrastructure\AlSsareea.BuildingBlocks.Infrastructure.csproj" />
     <ProjectReference Include="..\Modules\Identity\AlSsareea.Modules.Identity.Application\AlSsareea.Modules.Identity.Application.csproj" />
     <ProjectReference Include="..\Modules\Identity\AlSsareea.Modules.Identity.Infrastructure\AlSsareea.Modules.Identity.Infrastructure.csproj" />
+    <ProjectReference Include="..\Modules\Customers\AlSsareea.Modules.Customers.Application\AlSsareea.Modules.Customers.Application.csproj" />
+    <ProjectReference Include="..\Modules\Customers\AlSsareea.Modules.Customers.Contracts\AlSsareea.Modules.Customers.Contracts.csproj" />
+    <ProjectReference Include="..\Modules\Customers\AlSsareea.Modules.Customers.Infrastructure\AlSsareea.Modules.Customers.Infrastructure.csproj" />
   </ItemGroup>
 </Project>

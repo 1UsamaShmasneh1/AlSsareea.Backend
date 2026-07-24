@@ -7,6 +7,8 @@ using AlSsareea.Api.Security;
 using AlSsareea.Api.Serialization;
 using AlSsareea.BuildingBlocks.Application.Localization;
 using AlSsareea.BuildingBlocks.Infrastructure;
+using AlSsareea.Modules.Customers.Application;
+using AlSsareea.Modules.Customers.Infrastructure;
 using AlSsareea.Modules.Identity.Application;
 using AlSsareea.Modules.Identity.Infrastructure;
 using Microsoft.AspNetCore.Authentication.JwtBearer;
@@ -69,6 +71,10 @@ public static class ServiceCollectionExtensions
             AddFixedWindow(options, "auth-login", rateLimits.LoginPermitLimit, rateLimits.WindowSeconds);
             AddFixedWindow(options, "auth-refresh", rateLimits.RefreshPermitLimit, rateLimits.WindowSeconds);
             AddFixedWindow(options, "auth-otp", rateLimits.OtpPermitLimit, rateLimits.WindowSeconds);
+            AddFixedWindow(options, "customers-self-write", 30, 60);
+            AddFixedWindow(options, "customers-address-write", 30, 60);
+            AddFixedWindow(options, "customers-admin-read", 120, 60);
+            AddFixedWindow(options, "customers-admin-write", 30, 60);
         });
 
         services.ConfigureHttpJsonOptions(options =>
@@ -89,6 +95,8 @@ public static class ServiceCollectionExtensions
         services.AddBuildingBlocksInfrastructure();
         services.AddIdentityApplication();
         services.AddIdentityInfrastructure(configuration);
+        services.AddCustomersApplication();
+        services.AddCustomersInfrastructure(configuration);
 
         return services;
     }

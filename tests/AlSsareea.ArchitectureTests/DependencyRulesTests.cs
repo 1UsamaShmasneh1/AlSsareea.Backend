@@ -1,6 +1,10 @@
 using System.Reflection;
 using AlSsareea.BuildingBlocks.Application;
 using AlSsareea.BuildingBlocks.Domain;
+using AlSsareea.Modules.Customers.Application;
+using AlSsareea.Modules.Customers.Contracts;
+using AlSsareea.Modules.Customers.Domain;
+using AlSsareea.Modules.Customers.Infrastructure.Persistence;
 using AlSsareea.Modules.Identity.Application;
 using AlSsareea.Modules.Identity.Contracts;
 using AlSsareea.Modules.Identity.Domain;
@@ -92,13 +96,15 @@ public sealed class DependencyRulesTests
     {
         string[] repositoryNames = typeof(IIdentityModule).Assembly.GetTypes()
             .Concat(typeof(IdentityDbContext).Assembly.GetTypes())
+            .Concat(typeof(ICustomersService).Assembly.GetTypes())
+            .Concat(typeof(CustomersDbContext).Assembly.GetTypes())
             .Where(type => type.Name.EndsWith("Repository", StringComparison.Ordinal))
             .Select(type => type.Name.TrimStart('I'))
             .Distinct(StringComparer.Ordinal)
             .Order(StringComparer.Ordinal)
             .ToArray();
 
-        Assert.Equal(["PermissionRepository", "RoleRepository", "UserRepository"], repositoryNames);
+        Assert.Equal(["CustomerRepository", "PermissionRepository", "RoleRepository", "UserRepository"], repositoryNames);
     }
 
     [Fact]
@@ -171,16 +177,45 @@ public sealed class DependencyRulesTests
     }
 
     [Fact]
+    public void CustomersLayersRespectDependencyDirectionAndIdentityBoundary()
+    {
+        AssertDoesNotReference(typeof(Customer).Assembly, "Microsoft.EntityFrameworkCore");
+        AssertDoesNotReference(typeof(Customer).Assembly, ".Application");
+        AssertDoesNotReference(typeof(Customer).Assembly, ".Infrastructure");
+        AssertDoesNotReference(typeof(Customer).Assembly, "Microsoft.AspNetCore");
+        AssertDoesNotReference(typeof(ICustomersService).Assembly, ".Infrastructure");
+        AssertDoesNotReference(typeof(ICustomersService).Assembly, "AlSsareea.Modules.Identity.Infrastructure");
+        AssertDoesNotReference(typeof(CustomerResponse).Assembly, ".Domain");
+        AssertDoesNotReference(typeof(CustomerResponse).Assembly, ".Infrastructure");
+        Assert.DoesNotContain(typeof(Customer).Assembly.GetTypes(), type => type.Namespace?.StartsWith("AlSsareea.Modules.Identity", StringComparison.Ordinal) == true);
+    }
+
+    [Fact]
+    public void CustomersInfrastructureDoesNotReferenceIdentityInfrastructure()
+    {
+        AssertDoesNotReference(typeof(CustomersDbContext).Assembly, "AlSsareea.Modules.Identity.Infrastructure");
+    }
+
+    [Fact]
+    public void ApiDoesNotExposeCustomersDbContext()
+    {
+        Type contextType = typeof(CustomersDbContext);
+        MethodInfo[] methods = typeof(Program).Assembly.GetTypes().SelectMany(type => type.GetMethods(
+            BindingFlags.Public | BindingFlags.NonPublic | BindingFlags.Static | BindingFlags.Instance)).ToArray();
+        Assert.DoesNotContain(methods, method => method.ReturnType == contextType || method.GetParameters().Any(parameter => parameter.ParameterType == contextType));
+    }
+
+    [Fact]
     public void MigrationsExistOnlyInModuleInfrastructure()
     {
-        Assembly infrastructure = typeof(IdentityDbContext).Assembly;
+        Assembly[] infrastructure = [typeof(IdentityDbContext).Assembly, typeof(CustomersDbContext).Assembly];
         Type[] migrationTypes = SolutionAssemblies()
             .SelectMany(assembly => assembly.GetTypes())
             .Where(type => InheritsFrom(type, "Microsoft.EntityFrameworkCore.Migrations.Migration"))
             .ToArray();
 
         Assert.NotEmpty(migrationTypes);
-        Assert.All(migrationTypes, type => Assert.Equal(infrastructure, type.Assembly));
+        Assert.All(migrationTypes, type => Assert.Contains(type.Assembly, infrastructure));
     }
 
     public static TheoryData<Assembly> FrameworkNeutralAssemblies => new()
@@ -190,6 +225,9 @@ public sealed class DependencyRulesTests
         typeof(User).Assembly,
         typeof(IIdentityModule).Assembly,
         typeof(IIdentityIntegrationEvent).Assembly,
+        typeof(Customer).Assembly,
+        typeof(ICustomersService).Assembly,
+        typeof(CustomerResponse).Assembly,
     };
 
     private static void AssertDoesNotReference(Assembly assembly, string forbiddenName)
@@ -224,5 +262,9 @@ public sealed class DependencyRulesTests
         typeof(User).Assembly,
         typeof(IIdentityModule).Assembly,
         typeof(IdentityDbContext).Assembly,
+        typeof(Customer).Assembly,
+        typeof(ICustomersService).Assembly,
+        typeof(CustomerResponse).Assembly,
+        typeof(CustomersDbContext).Assembly,
     ];
 }

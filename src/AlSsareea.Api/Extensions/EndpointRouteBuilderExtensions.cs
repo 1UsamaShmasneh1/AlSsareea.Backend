@@ -10,6 +10,7 @@ public static class EndpointRouteBuilderExtensions
     public static WebApplication MapApiEndpoints(this WebApplication app)
     {
         app.MapAuthenticationEndpoints();
+        app.MapCustomerEndpoints();
         app.MapHealthChecks("/health").WithTags("System");
         app.MapHealthChecks("/health/live", new HealthCheckOptions
         {
