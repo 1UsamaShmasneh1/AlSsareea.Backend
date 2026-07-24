@@ -8,10 +8,13 @@ using AlSsareea.Modules.Customers.Infrastructure.Persistence;
 using AlSsareea.Modules.Identity.Application;
 using AlSsareea.Modules.Identity.Contracts;
 using AlSsareea.Modules.Identity.Domain;
+<<<<<<< HEAD
 using AlSsareea.Modules.Maps.Application;
 using AlSsareea.Modules.Maps.Contracts;
 using AlSsareea.Modules.Maps.Domain;
 using AlSsareea.Modules.Maps.Infrastructure.Providers;
+=======
+>>>>>>> origin/main
 using AlSsareea.Modules.Identity.Infrastructure.Persistence;
 
 namespace AlSsareea.ArchitectureTests;
@@ -102,14 +105,18 @@ public sealed class DependencyRulesTests
             .Concat(typeof(IdentityDbContext).Assembly.GetTypes())
             .Concat(typeof(ICustomersService).Assembly.GetTypes())
             .Concat(typeof(CustomersDbContext).Assembly.GetTypes())
+<<<<<<< HEAD
             .Concat(typeof(IServiceAreaRepository).Assembly.GetTypes())
             .Concat(typeof(FakeMapsProvider).Assembly.GetTypes())
+=======
+>>>>>>> origin/main
             .Where(type => type.Name.EndsWith("Repository", StringComparison.Ordinal))
             .Select(type => type.Name.TrimStart('I'))
             .Distinct(StringComparer.Ordinal)
             .Order(StringComparer.Ordinal)
             .ToArray();
 
+<<<<<<< HEAD
         Assert.Equal(
             [
                 "CustomerRepository",
@@ -119,6 +126,9 @@ public sealed class DependencyRulesTests
                 "UserRepository",
             ],
             repositoryNames);
+=======
+        Assert.Equal(["CustomerRepository", "PermissionRepository", "RoleRepository", "UserRepository"], repositoryNames);
+>>>>>>> origin/main
     }
 
     [Fact]
@@ -127,6 +137,7 @@ public sealed class DependencyRulesTests
         AssertDoesNotReference(typeof(Entity<>).Assembly, "Microsoft.EntityFrameworkCore");
     }
 
+<<<<<<< HEAD
     [Fact]
     public void MapsDomainDoesNotReferenceApplicationOrInfrastructure()
     {
@@ -183,6 +194,8 @@ public sealed class DependencyRulesTests
             "AlSsareea.Modules.Maps.Infrastructure");
     }
 
+=======
+>>>>>>> origin/main
     [Theory]
     [MemberData(nameof(FrameworkNeutralAssemblies))]
     public void DomainAndApplicationDoNotReferencePersistenceFrameworks(Assembly assembly)
@@ -247,6 +260,7 @@ public sealed class DependencyRulesTests
     }
 
     [Fact]
+<<<<<<< HEAD
     public void MapsInfrastructureDoesNotReferenceAnotherModuleInfrastructure()
     {
         string[] references = typeof(FakeMapsProvider).Assembly.GetReferencedAssemblies()
@@ -259,6 +273,8 @@ public sealed class DependencyRulesTests
     }
 
     [Fact]
+=======
+>>>>>>> origin/main
     public void CustomersLayersRespectDependencyDirectionAndIdentityBoundary()
     {
         AssertDoesNotReference(typeof(Customer).Assembly, "Microsoft.EntityFrameworkCore");
@@ -290,12 +306,16 @@ public sealed class DependencyRulesTests
     [Fact]
     public void MigrationsExistOnlyInModuleInfrastructure()
     {
+<<<<<<< HEAD
         Assembly[] infrastructure =
         [
             typeof(IdentityDbContext).Assembly,
             typeof(CustomersDbContext).Assembly,
             typeof(FakeMapsProvider).Assembly,
         ];
+=======
+        Assembly[] infrastructure = [typeof(IdentityDbContext).Assembly, typeof(CustomersDbContext).Assembly];
+>>>>>>> origin/main
         Type[] migrationTypes = SolutionAssemblies()
             .SelectMany(assembly => assembly.GetTypes())
             .Where(type => InheritsFrom(type, "Microsoft.EntityFrameworkCore.Migrations.Migration"))
@@ -315,9 +335,12 @@ public sealed class DependencyRulesTests
         typeof(Customer).Assembly,
         typeof(ICustomersService).Assembly,
         typeof(CustomerResponse).Assembly,
+<<<<<<< HEAD
         typeof(ServiceArea).Assembly,
         typeof(IServiceAreaRepository).Assembly,
         typeof(IMapsProvider).Assembly,
+=======
+>>>>>>> origin/main
     };
 
     private static void AssertDoesNotReference(Assembly assembly, string forbiddenName)
@@ -356,9 +379,12 @@ public sealed class DependencyRulesTests
         typeof(ICustomersService).Assembly,
         typeof(CustomerResponse).Assembly,
         typeof(CustomersDbContext).Assembly,
+<<<<<<< HEAD
         typeof(ServiceArea).Assembly,
         typeof(IServiceAreaRepository).Assembly,
         typeof(IMapsProvider).Assembly,
         typeof(FakeMapsProvider).Assembly,
+=======
+>>>>>>> origin/main
     ];
 }

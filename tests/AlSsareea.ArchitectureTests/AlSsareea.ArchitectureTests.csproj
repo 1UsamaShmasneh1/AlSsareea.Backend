@@ -18,10 +18,13 @@
     <ProjectReference Include="..\..\src\Modules\Identity\AlSsareea.Modules.Identity.Contracts\AlSsareea.Modules.Identity.Contracts.csproj" />
     <ProjectReference Include="..\..\src\Modules\Identity\AlSsareea.Modules.Identity.Domain\AlSsareea.Modules.Identity.Domain.csproj" />
     <ProjectReference Include="..\..\src\Modules\Identity\AlSsareea.Modules.Identity.Infrastructure\AlSsareea.Modules.Identity.Infrastructure.csproj" />
+<<<<<<< HEAD
     <ProjectReference Include="..\..\src\Modules\Maps\AlSsareea.Modules.Maps.Application\AlSsareea.Modules.Maps.Application.csproj" />
     <ProjectReference Include="..\..\src\Modules\Maps\AlSsareea.Modules.Maps.Contracts\AlSsareea.Modules.Maps.Contracts.csproj" />
     <ProjectReference Include="..\..\src\Modules\Maps\AlSsareea.Modules.Maps.Domain\AlSsareea.Modules.Maps.Domain.csproj" />
     <ProjectReference Include="..\..\src\Modules\Maps\AlSsareea.Modules.Maps.Infrastructure\AlSsareea.Modules.Maps.Infrastructure.csproj" />
+=======
+>>>>>>> origin/main
     <ProjectReference Include="..\..\src\Modules\Customers\AlSsareea.Modules.Customers.Application\AlSsareea.Modules.Customers.Application.csproj" />
     <ProjectReference Include="..\..\src\Modules\Customers\AlSsareea.Modules.Customers.Contracts\AlSsareea.Modules.Customers.Contracts.csproj" />
     <ProjectReference Include="..\..\src\Modules\Customers\AlSsareea.Modules.Customers.Domain\AlSsareea.Modules.Customers.Domain.csproj" />
