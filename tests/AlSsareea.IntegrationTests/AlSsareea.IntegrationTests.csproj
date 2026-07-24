@@ -7,11 +7,15 @@
     <PackageReference Include="coverlet.collector" PrivateAssets="all" />
     <PackageReference Include="Microsoft.AspNetCore.Mvc.Testing" />
     <PackageReference Include="Microsoft.NET.Test.Sdk" />
+    <PackageReference Include="Testcontainers.PostgreSql" />
     <PackageReference Include="xunit" />
     <PackageReference Include="xunit.runner.visualstudio" PrivateAssets="all" />
   </ItemGroup>
   <ItemGroup>
     <ProjectReference Include="..\..\src\AlSsareea.Api\AlSsareea.Api.csproj" />
+    <ProjectReference Include="..\..\src\Modules\Maps\AlSsareea.Modules.Maps.Application\AlSsareea.Modules.Maps.Application.csproj" />
+    <ProjectReference Include="..\..\src\Modules\Maps\AlSsareea.Modules.Maps.Domain\AlSsareea.Modules.Maps.Domain.csproj" />
+    <ProjectReference Include="..\..\src\Modules\Maps\AlSsareea.Modules.Maps.Infrastructure\AlSsareea.Modules.Maps.Infrastructure.csproj" />
   </ItemGroup>
   <ItemGroup>
     <Using Include="Xunit" />

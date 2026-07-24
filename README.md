@@ -4,12 +4,13 @@ Backend foundation for **AlSsareea (عالسريع)**, a multilingual delivery p
 
 ## Status
 
-Foundation only. The solution currently provides shared domain/application building blocks, an Identity module skeleton, a minimal HTTP API, localization setup, health checks, Problem Details, OpenAPI, correlation IDs, and automated tests. Authentication, persistence, payments, maps, and delivery workflows have not been implemented.
+Foundation only. The solution currently provides shared domain/application building blocks, an Identity module skeleton, a Maps and PostGIS foundation, a minimal HTTP API, localization setup, health checks, Problem Details, OpenAPI, correlation IDs, and automated tests. Authentication, payments, addresses, provider-backed maps, and delivery workflows have not been implemented.
 
 ## Requirements
 
 - .NET SDK `10.0.302` or a newer compatible .NET 10 feature band
-- No external services or database are required
+- Docker or another Testcontainers-compatible runtime is required for Maps integration tests
+- PostgreSQL with PostGIS is required when Maps persistence is used
 
 ## Restore, build, run, and test
 
@@ -44,6 +45,7 @@ Future versioned business endpoints will use the `/api/v1` base path. The unvers
 - `src/AlSsareea.Api`: HTTP composition root and minimal endpoints.
 - `src/BuildingBlocks`: framework-neutral domain and application abstractions, contracts, and shared infrastructure implementations.
 - `src/Modules/Identity`: Identity domain and layer skeleton; it does not yet authenticate users.
+- `src/Modules/Maps`: Provider-neutral maps contracts, service areas, PostGIS persistence, and a deterministic fake provider.
 - `tests`: unit, integration, and architecture tests.
 - `docs`: architecture notes and Architecture Decision Records.
 

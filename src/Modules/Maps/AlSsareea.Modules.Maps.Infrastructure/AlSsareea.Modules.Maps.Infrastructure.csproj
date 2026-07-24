@@ -1,0 +1,17 @@
+<Project Sdk="Microsoft.NET.Sdk">
+  <ItemGroup>
+    <PackageReference Include="Microsoft.EntityFrameworkCore.Design">
+      <PrivateAssets>all</PrivateAssets>
+      <IncludeAssets>runtime; build; native; contentfiles; analyzers; buildtransitive</IncludeAssets>
+    </PackageReference>
+    <PackageReference Include="Microsoft.Extensions.Options.ConfigurationExtensions" />
+    <PackageReference Include="Npgsql.EntityFrameworkCore.PostgreSQL" />
+    <PackageReference Include="Npgsql.EntityFrameworkCore.PostgreSQL.NetTopologySuite" />
+  </ItemGroup>
+  <ItemGroup>
+    <ProjectReference Include="..\..\..\BuildingBlocks\AlSsareea.BuildingBlocks.Application\AlSsareea.BuildingBlocks.Application.csproj" />
+    <ProjectReference Include="..\AlSsareea.Modules.Maps.Application\AlSsareea.Modules.Maps.Application.csproj" />
+    <ProjectReference Include="..\AlSsareea.Modules.Maps.Contracts\AlSsareea.Modules.Maps.Contracts.csproj" />
+    <ProjectReference Include="..\AlSsareea.Modules.Maps.Domain\AlSsareea.Modules.Maps.Domain.csproj" />
+  </ItemGroup>
+</Project>

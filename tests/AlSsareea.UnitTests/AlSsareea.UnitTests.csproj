@@ -12,6 +12,9 @@
   <ItemGroup>
     <ProjectReference Include="..\..\src\BuildingBlocks\AlSsareea.BuildingBlocks.Infrastructure\AlSsareea.BuildingBlocks.Infrastructure.csproj" />
     <ProjectReference Include="..\..\src\Modules\Identity\AlSsareea.Modules.Identity.Domain\AlSsareea.Modules.Identity.Domain.csproj" />
+    <ProjectReference Include="..\..\src\Modules\Maps\AlSsareea.Modules.Maps.Contracts\AlSsareea.Modules.Maps.Contracts.csproj" />
+    <ProjectReference Include="..\..\src\Modules\Maps\AlSsareea.Modules.Maps.Domain\AlSsareea.Modules.Maps.Domain.csproj" />
+    <ProjectReference Include="..\..\src\Modules\Maps\AlSsareea.Modules.Maps.Infrastructure\AlSsareea.Modules.Maps.Infrastructure.csproj" />
   </ItemGroup>
   <ItemGroup>
     <Using Include="Xunit" />

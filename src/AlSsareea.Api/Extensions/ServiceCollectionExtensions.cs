@@ -5,6 +5,8 @@ using AlSsareea.BuildingBlocks.Application.Localization;
 using AlSsareea.BuildingBlocks.Infrastructure;
 using AlSsareea.Modules.Identity.Application;
 using AlSsareea.Modules.Identity.Infrastructure;
+using AlSsareea.Modules.Maps.Application;
+using AlSsareea.Modules.Maps.Infrastructure;
 using Microsoft.AspNetCore.Localization;
 
 namespace AlSsareea.Api.Extensions;
@@ -37,6 +39,8 @@ public static class ServiceCollectionExtensions
         services.AddBuildingBlocksInfrastructure();
         services.AddIdentityApplication();
         services.AddIdentityInfrastructure();
+        services.AddMapsApplication();
+        services.AddMapsInfrastructure(configuration);
 
         return services;
     }

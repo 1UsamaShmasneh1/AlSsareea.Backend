@@ -8,5 +8,7 @@
     <ProjectReference Include="..\BuildingBlocks\AlSsareea.BuildingBlocks.Infrastructure\AlSsareea.BuildingBlocks.Infrastructure.csproj" />
     <ProjectReference Include="..\Modules\Identity\AlSsareea.Modules.Identity.Application\AlSsareea.Modules.Identity.Application.csproj" />
     <ProjectReference Include="..\Modules\Identity\AlSsareea.Modules.Identity.Infrastructure\AlSsareea.Modules.Identity.Infrastructure.csproj" />
+    <ProjectReference Include="..\Modules\Maps\AlSsareea.Modules.Maps.Application\AlSsareea.Modules.Maps.Application.csproj" />
+    <ProjectReference Include="..\Modules\Maps\AlSsareea.Modules.Maps.Infrastructure\AlSsareea.Modules.Maps.Infrastructure.csproj" />
   </ItemGroup>
 </Project>
