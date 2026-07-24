@@ -4,7 +4,7 @@ Backend foundation for **AlSsareea (عالسريع)**, a multilingual delivery p
 
 ## Status
 
-Phase 3 adds production-oriented authentication and authorization to the durable Phase 2 Identity model: PBKDF2 password hashing, JWT access tokens, rotating refresh tokens with replay response, durable sessions and devices, lockout, role/permission policies, OTP primitives, scoped idempotency, audit records, rate limiting, and security headers. See [the authentication architecture](docs/architecture/authentication.md).
+Phase 4 adds the Customers business-profile module on top of Phase 3 authentication: owned profiles, addresses, preferences, commercial status/history, PostGIS points, concurrency, ownership enforcement, and permission-protected administration. See [the Customers architecture](docs/architecture/customers.md).
 
 ## Requirements
 
@@ -38,11 +38,12 @@ docker compose down
 
 ## Connection string
 
-Identity reads `ConnectionStrings:IdentityDatabase`. `appsettings.Development.json` contains a local-only value matching Compose. Override it with `ConnectionStrings__IdentityDatabase` or user secrets:
+Identity and Customers own separate contexts and migration histories while normally using the same PostgreSQL database. Configure `ConnectionStrings:IdentityDatabase` and `ConnectionStrings:CustomersDatabase`. `appsettings.Development.json` contains local-only values matching Compose.
 
 ```powershell
 dotnet user-secrets init --project src/AlSsareea.Api
 dotnet user-secrets set "ConnectionStrings:IdentityDatabase" "Host=localhost;Port=5432;Database=alssareea;Username=alssareea;Password=<development-password>" --project src/AlSsareea.Api
+dotnet user-secrets set "ConnectionStrings:CustomersDatabase" "Host=localhost;Port=5432;Database=alssareea;Username=alssareea;Password=<development-password>" --project src/AlSsareea.Api
 ```
 
 No production connection string is stored in the repository.
@@ -66,12 +67,15 @@ Run from the repository root. The design-time factory uses `ConnectionStrings__I
 
 ```powershell
 $identityProject = ".\src\Modules\Identity\AlSsareea.Modules.Identity.Infrastructure\AlSsareea.Modules.Identity.Infrastructure.csproj"
+$customersProject = ".\src\Modules\Customers\AlSsareea.Modules.Customers.Infrastructure\AlSsareea.Modules.Customers.Infrastructure.csproj"
 
 dotnet ef migrations add <MigrationName> --project $identityProject --context IdentityDbContext --output-dir Persistence\Migrations
 dotnet ef database update --project $identityProject --context IdentityDbContext
 dotnet ef migrations remove --project $identityProject --context IdentityDbContext
 dotnet ef migrations list --project $identityProject --context IdentityDbContext
 dotnet ef migrations has-pending-model-changes --project $identityProject --context IdentityDbContext
+dotnet ef database update --project $customersProject --context CustomersDbContext
+dotnet ef migrations has-pending-model-changes --project $customersProject --context CustomersDbContext
 ```
 
 Only remove a migration that has not been applied. Migrations are never applied automatically when the API starts.
@@ -115,6 +119,13 @@ dotnet dev-certs https --trust
 | `POST` | `/api/v1/auth/otp/challenges` | Create a development/test OTP challenge |
 | `POST` | `/api/v1/auth/otp/challenges/{challengeId}/verify` | Atomically consume an OTP |
 | `GET` | `/openapi/v1.json` | OpenAPI document in Development only |
+| `POST` | `/api/v1/customers/me` | Create the authenticated user's customer profile |
+| `GET`, `PUT` | `/api/v1/customers/me` | Read or update the owned profile |
+| `GET`, `POST` | `/api/v1/customers/me/addresses` | List or add owned addresses |
+| `GET`, `PUT`, `DELETE` | `/api/v1/customers/me/addresses/{addressId}` | Read, update, or soft-delete an owned address |
+| `PUT` | `/api/v1/customers/me/addresses/{addressId}/default` | Select the owned default address |
+| `GET`, `PUT` | `/api/v1/customers/me/preferences` | Read or update owned preferences |
+| `GET`, `PUT` | `/api/v1/admin/customers...` | Permission-protected customer administration |
 
 Future versioned business endpoints will use the `/api/v1` base path. The unversioned system endpoints are operational endpoints rather than business contracts.
 
@@ -123,6 +134,7 @@ Future versioned business endpoints will use the `/api/v1` base path. The unvers
 - `src/AlSsareea.Api`: HTTP composition root and minimal endpoints.
 - `src/BuildingBlocks`: framework-neutral domain and application abstractions, contracts, and shared infrastructure implementations.
 - `src/Modules/Identity`: Identity domain, authentication application contracts, and persistence/security implementation.
+- `src/Modules/Customers`: Customer domain, stable HTTP contracts, application abstractions, and owned persistence.
 - `tests`: unit, integration, and architecture tests.
 - `docs`: architecture notes and Architecture Decision Records.
 
@@ -140,4 +152,4 @@ Keep domain code independent of application, infrastructure, and ASP.NET Core. A
 - Do not use EF Core InMemory or SQLite for persistence integration tests.
 - Do not run migrations automatically in production.
 
-Identity owns schema `identity`, its own migration history, and thirteen tables documented in `docs/architecture/identity-domain.md`. PostGIS is enabled for future geographic modules, but Identity has no spatial entity.
+Identity owns schema `identity`. Customers owns schema `customers`, a separate migration history, four tables, and PostGIS Point storage documented in `docs/architecture/customers.md`. There are no cross-schema foreign keys.

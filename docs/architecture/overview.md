@@ -5,3 +5,5 @@ AlSsareea uses a modular monolith. The API is the composition root; modules own 
 Dependencies point inward: Infrastructure may use Application and Domain; Application may use Domain; Domain remains framework-neutral. Cross-module integrations use Contracts and never another module's Infrastructure assembly. Architecture tests enforce the initial dependency rules.
 
 Business endpoints added later should be grouped under `/api/v1`. Operational system endpoints remain under `/health` and `/api/system`.
+
+Phase 4 adds the [Customers module](customers.md), which owns business profiles and commercial state while retaining a scalar-only boundary to Identity.

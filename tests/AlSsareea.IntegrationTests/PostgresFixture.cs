@@ -1,3 +1,4 @@
+using AlSsareea.Modules.Customers.Infrastructure.Persistence;
 using AlSsareea.Modules.Identity.Infrastructure.Persistence;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.DependencyInjection;
@@ -25,6 +26,8 @@ public sealed class PostgresFixture : IAsyncLifetime
         await using AsyncServiceScope scope = ApiFactory.Services.CreateAsyncScope();
         IdentityDbContext dbContext = scope.ServiceProvider.GetRequiredService<IdentityDbContext>();
         await dbContext.Database.MigrateAsync();
+        CustomersDbContext customersDbContext = scope.ServiceProvider.GetRequiredService<CustomersDbContext>();
+        await customersDbContext.Database.MigrateAsync();
     }
 
     public async Task DisposeAsync()

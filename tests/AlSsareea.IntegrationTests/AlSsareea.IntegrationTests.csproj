@@ -15,6 +15,10 @@
     <ProjectReference Include="..\..\src\AlSsareea.Api\AlSsareea.Api.csproj" />
     <ProjectReference Include="..\..\src\Modules\Identity\AlSsareea.Modules.Identity.Domain\AlSsareea.Modules.Identity.Domain.csproj" />
     <ProjectReference Include="..\..\src\Modules\Identity\AlSsareea.Modules.Identity.Infrastructure\AlSsareea.Modules.Identity.Infrastructure.csproj" />
+    <ProjectReference Include="..\..\src\Modules\Customers\AlSsareea.Modules.Customers.Domain\AlSsareea.Modules.Customers.Domain.csproj" />
+    <ProjectReference Include="..\..\src\Modules\Customers\AlSsareea.Modules.Customers.Contracts\AlSsareea.Modules.Customers.Contracts.csproj" />
+    <ProjectReference Include="..\..\src\Modules\Customers\AlSsareea.Modules.Customers.Application\AlSsareea.Modules.Customers.Application.csproj" />
+    <ProjectReference Include="..\..\src\Modules\Customers\AlSsareea.Modules.Customers.Infrastructure\AlSsareea.Modules.Customers.Infrastructure.csproj" />
   </ItemGroup>
   <ItemGroup>
     <Using Include="Xunit" />
