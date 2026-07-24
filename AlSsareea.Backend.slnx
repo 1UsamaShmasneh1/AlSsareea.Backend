@@ -14,15 +14,12 @@
     <Project Path="src/Modules/Identity/AlSsareea.Modules.Identity.Domain/AlSsareea.Modules.Identity.Domain.csproj" />
     <Project Path="src/Modules/Identity/AlSsareea.Modules.Identity.Infrastructure/AlSsareea.Modules.Identity.Infrastructure.csproj" />
   </Folder>
-<<<<<<< HEAD
   <Folder Name="/src/Modules/Maps/">
     <Project Path="src/Modules/Maps/AlSsareea.Modules.Maps.Application/AlSsareea.Modules.Maps.Application.csproj" />
     <Project Path="src/Modules/Maps/AlSsareea.Modules.Maps.Contracts/AlSsareea.Modules.Maps.Contracts.csproj" />
     <Project Path="src/Modules/Maps/AlSsareea.Modules.Maps.Domain/AlSsareea.Modules.Maps.Domain.csproj" />
     <Project Path="src/Modules/Maps/AlSsareea.Modules.Maps.Infrastructure/AlSsareea.Modules.Maps.Infrastructure.csproj" />
   </Folder>
-=======
->>>>>>> origin/main
   <Folder Name="/src/Modules/Customers/">
     <Project Path="src/Modules/Customers/AlSsareea.Modules.Customers.Application/AlSsareea.Modules.Customers.Application.csproj" />
     <Project Path="src/Modules/Customers/AlSsareea.Modules.Customers.Contracts/AlSsareea.Modules.Customers.Contracts.csproj" />
