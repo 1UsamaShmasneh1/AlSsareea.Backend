@@ -1,4 +1,4 @@
-# ADR-004: Maps geospatial foundation
+# ADR-006: Maps geospatial foundation
 
 - Status: Accepted
 - Date: 2026-07-24

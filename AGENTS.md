@@ -27,6 +27,15 @@ AlSsareea is a multilingual delivery platform. This repository currently contain
 - Preserve API compatibility; breaking contract changes require documentation and suitable versioning.
 - Run restore, build, tests, and formatting verification before completing a change.
 
+## Persistence rules
+
+- Every module owns its own `DbContext`, database schema, migrations, and migration-history table.
+- Keep migrations inside the owning module's Infrastructure project, and update tests and documentation with every migration.
+- Never create a system-wide `DbContext` or generic repository.
+- Never use `Database.EnsureCreated()` or apply migrations automatically in production.
+- Persistence integration tests must use real PostgreSQL/PostGIS through Testcontainers, never EF Core InMemory or SQLite.
+- Module Infrastructure must not access another module's schema or Infrastructure directly.
+
 ## Languages and presentation
 
 - Supported languages are Arabic (`ar`), Hebrew (`he`), and English (`en`).

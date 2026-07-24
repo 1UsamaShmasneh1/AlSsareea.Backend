@@ -1,0 +1,41 @@
+name: ci
+
+on:
+  push:
+  pull_request:
+
+jobs:
+  verify:
+    runs-on: ubuntu-latest
+    timeout-minutes: 20
+
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-dotnet@v4
+        with:
+          dotnet-version: 10.0.x
+
+      - name: Restore local tools
+        run: dotnet tool restore
+
+      - name: Restore
+        run: dotnet restore
+
+      - name: Build
+        run: dotnet build --no-restore
+
+      - name: Test
+        run: dotnet test --no-build
+
+      - name: Verify formatting
+        run: dotnet format --verify-no-changes
+
+      - name: Audit NuGet packages
+        run: dotnet list package --vulnerable --include-transitive
+
+      - name: Verify Identity migration model
+        run: >-
+          dotnet ef migrations has-pending-model-changes
+          --project ./src/Modules/Identity/AlSsareea.Modules.Identity.Infrastructure/AlSsareea.Modules.Identity.Infrastructure.csproj
+          --context IdentityDbContext

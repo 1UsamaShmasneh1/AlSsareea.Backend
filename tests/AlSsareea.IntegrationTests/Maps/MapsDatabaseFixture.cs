@@ -22,7 +22,14 @@ public sealed class MapsDatabaseFixture : IAsyncLifetime
         DbContextOptions = new DbContextOptionsBuilder<MapsDbContext>()
             .UseNpgsql(
                 _database.GetConnectionString(),
-                npgsqlOptions => npgsqlOptions.UseNetTopologySuite())
+                npgsqlOptions =>
+                {
+                    npgsqlOptions.UseNetTopologySuite();
+                    npgsqlOptions.MigrationsAssembly(typeof(MapsDbContext).Assembly.FullName);
+                    npgsqlOptions.MigrationsHistoryTable(
+                        MapsDbContextSchema.MigrationsHistoryTable,
+                        MapsDbContextSchema.Name);
+                })
             .Options;
 
         await using var context = CreateContext();

@@ -1,6 +1,7 @@
 <Project Sdk="Microsoft.NET.Sdk.Web">
   <ItemGroup>
     <PackageReference Include="Microsoft.AspNetCore.OpenApi" />
+    <PackageReference Include="Microsoft.AspNetCore.Authentication.JwtBearer" />
     <PackageReference Include="Microsoft.OpenApi" />
   </ItemGroup>
   <ItemGroup>
@@ -10,5 +11,8 @@
     <ProjectReference Include="..\Modules\Identity\AlSsareea.Modules.Identity.Infrastructure\AlSsareea.Modules.Identity.Infrastructure.csproj" />
     <ProjectReference Include="..\Modules\Maps\AlSsareea.Modules.Maps.Application\AlSsareea.Modules.Maps.Application.csproj" />
     <ProjectReference Include="..\Modules\Maps\AlSsareea.Modules.Maps.Infrastructure\AlSsareea.Modules.Maps.Infrastructure.csproj" />
+    <ProjectReference Include="..\Modules\Customers\AlSsareea.Modules.Customers.Application\AlSsareea.Modules.Customers.Application.csproj" />
+    <ProjectReference Include="..\Modules\Customers\AlSsareea.Modules.Customers.Contracts\AlSsareea.Modules.Customers.Contracts.csproj" />
+    <ProjectReference Include="..\Modules\Customers\AlSsareea.Modules.Customers.Infrastructure\AlSsareea.Modules.Customers.Infrastructure.csproj" />
   </ItemGroup>
 </Project>

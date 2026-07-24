@@ -27,8 +27,9 @@ polygon edge is included.
 
 ## Persistence
 
-Maps data is stored in PostgreSQL under the `maps` schema. The initial migration enables
-PostGIS, creates `maps.service_areas`, persists the boundary as
+Maps data is stored in PostgreSQL under the `maps` schema with a module-owned
+`maps.__ef_migrations_history` table. The initial migration enables PostGIS, creates
+`maps.service_areas`, persists the boundary as
 `geometry(MultiPolygon,4326)`, and creates a GiST spatial index. `MapsDbContext` remains
 internal to Infrastructure. Other modules use Contracts.
 

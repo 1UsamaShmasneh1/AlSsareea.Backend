@@ -10,7 +10,14 @@ internal sealed class MapsDbContextFactory : IDesignTimeDbContextFactory<MapsDbC
         var optionsBuilder = new DbContextOptionsBuilder<MapsDbContext>();
         optionsBuilder.UseNpgsql(
             "Host=localhost;Database=alssareea_maps;Username=postgres",
-            npgsqlOptions => npgsqlOptions.UseNetTopologySuite());
+            npgsqlOptions =>
+            {
+                npgsqlOptions.UseNetTopologySuite();
+                npgsqlOptions.MigrationsAssembly(typeof(MapsDbContext).Assembly.FullName);
+                npgsqlOptions.MigrationsHistoryTable(
+                    MapsDbContextSchema.MigrationsHistoryTable,
+                    MapsDbContextSchema.Name);
+            });
 
         return new MapsDbContext(optionsBuilder.Options);
     }

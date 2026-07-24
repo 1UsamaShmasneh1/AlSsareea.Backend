@@ -1,4 +1,3 @@
-using AlSsareea.BuildingBlocks.Application;
 using AlSsareea.Modules.Maps.Application;
 using AlSsareea.Modules.Maps.Contracts;
 using AlSsareea.Modules.Maps.Infrastructure.Configuration;
@@ -32,12 +31,19 @@ public static class DependencyInjection
 
             options.UseNpgsql(
                 connectionString,
-                npgsqlOptions => npgsqlOptions.UseNetTopologySuite());
+                npgsqlOptions =>
+                {
+                    npgsqlOptions.UseNetTopologySuite();
+                    npgsqlOptions.MigrationsAssembly(typeof(MapsDbContext).Assembly.FullName);
+                    npgsqlOptions.MigrationsHistoryTable(
+                        MapsDbContextSchema.MigrationsHistoryTable,
+                        MapsDbContextSchema.Name);
+                });
         });
 
         services.AddScoped<IServiceAreaRepository, ServiceAreaRepository>();
-        services.AddScoped<IUnitOfWork>(
-            serviceProvider => serviceProvider.GetRequiredService<MapsDbContext>());
+        services.AddHealthChecks()
+            .AddDbContextCheck<MapsDbContext>("maps-postgresql", tags: ["ready"]);
 
         services.AddSingleton<FakeMapsProvider>();
         services.AddSingleton<IMapsProvider>(serviceProvider =>
