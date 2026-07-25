@@ -14,5 +14,8 @@
     <ProjectReference Include="..\Modules\Customers\AlSsareea.Modules.Customers.Application\AlSsareea.Modules.Customers.Application.csproj" />
     <ProjectReference Include="..\Modules\Customers\AlSsareea.Modules.Customers.Contracts\AlSsareea.Modules.Customers.Contracts.csproj" />
     <ProjectReference Include="..\Modules\Customers\AlSsareea.Modules.Customers.Infrastructure\AlSsareea.Modules.Customers.Infrastructure.csproj" />
+    <ProjectReference Include="..\Modules\Merchants\AlSsareea.Modules.Merchants.Application\AlSsareea.Modules.Merchants.Application.csproj" />
+    <ProjectReference Include="..\Modules\Merchants\AlSsareea.Modules.Merchants.Contracts\AlSsareea.Modules.Merchants.Contracts.csproj" />
+    <ProjectReference Include="..\Modules\Merchants\AlSsareea.Modules.Merchants.Infrastructure\AlSsareea.Modules.Merchants.Infrastructure.csproj" />
   </ItemGroup>
 </Project>

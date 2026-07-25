@@ -1,5 +1,7 @@
 using AlSsareea.Modules.Identity.Application;
+using AlSsareea.Modules.Identity.Contracts;
 using AlSsareea.Modules.Identity.Infrastructure.Authentication;
+using AlSsareea.Modules.Identity.Infrastructure.Persistence;
 using AlSsareea.Modules.Identity.Infrastructure.Persistence.Extensions;
 using AlSsareea.Modules.Identity.Infrastructure.Security;
 using Microsoft.Extensions.Configuration;
@@ -31,6 +33,7 @@ public static class DependencyInjection
         services.AddScoped<TokenGenerator>();
         services.AddScoped<IAuthenticationService, AuthenticationService>();
         services.AddScoped<ITokenSessionValidator, TokenSessionValidator>();
+        services.AddScoped<IIdentityUserLookup, IdentityUserLookup>();
         return services.AddIdentityPersistence(configuration);
     }
 }

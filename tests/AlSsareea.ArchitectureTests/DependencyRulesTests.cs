@@ -13,6 +13,10 @@ using AlSsareea.Modules.Maps.Application;
 using AlSsareea.Modules.Maps.Contracts;
 using AlSsareea.Modules.Maps.Domain;
 using AlSsareea.Modules.Maps.Infrastructure.Providers;
+using AlSsareea.Modules.Merchants.Application;
+using AlSsareea.Modules.Merchants.Contracts;
+using AlSsareea.Modules.Merchants.Domain;
+using AlSsareea.Modules.Merchants.Infrastructure.Persistence;
 
 namespace AlSsareea.ArchitectureTests;
 
@@ -104,6 +108,8 @@ public sealed class DependencyRulesTests
             .Concat(typeof(CustomersDbContext).Assembly.GetTypes())
             .Concat(typeof(IServiceAreaRepository).Assembly.GetTypes())
             .Concat(typeof(FakeMapsProvider).Assembly.GetTypes())
+            .Concat(typeof(IMerchantsService).Assembly.GetTypes())
+            .Concat(typeof(MerchantsDbContext).Assembly.GetTypes())
             .Where(type => type.Name.EndsWith("Repository", StringComparison.Ordinal))
             .Select(type => type.Name.TrimStart('I'))
             .Distinct(StringComparer.Ordinal)
@@ -113,6 +119,9 @@ public sealed class DependencyRulesTests
         Assert.Equal(
             [
                 "CustomerRepository",
+                "MerchantBranchRepository",
+                "MerchantEmployeeRepository",
+                "MerchantRepository",
                 "PermissionRepository",
                 "RoleRepository",
                 "ServiceAreaRepository",
@@ -279,6 +288,29 @@ public sealed class DependencyRulesTests
     }
 
     [Fact]
+    public void MerchantsLayersRespectDependencyDirectionAndModuleBoundaries()
+    {
+        AssertDoesNotReference(typeof(Merchant).Assembly, "Microsoft.EntityFrameworkCore");
+        AssertDoesNotReference(typeof(Merchant).Assembly, "Microsoft.AspNetCore");
+        AssertDoesNotReference(typeof(Merchant).Assembly, ".Application");
+        AssertDoesNotReference(typeof(Merchant).Assembly, ".Infrastructure");
+        AssertDoesNotReference(typeof(IMerchantsService).Assembly, ".Infrastructure");
+        AssertDoesNotReference(typeof(MerchantResponse).Assembly, ".Domain");
+        AssertDoesNotReference(typeof(MerchantResponse).Assembly, ".Infrastructure");
+        AssertDoesNotReference(typeof(MerchantsDbContext).Assembly, "AlSsareea.Modules.Identity.Infrastructure");
+        AssertDoesNotReference(typeof(MerchantsDbContext).Assembly, "AlSsareea.Modules.Maps.Infrastructure");
+    }
+
+    [Fact]
+    public void ApiDoesNotExposeMerchantsDbContext()
+    {
+        Type contextType = typeof(MerchantsDbContext);
+        MethodInfo[] methods = typeof(Program).Assembly.GetTypes().SelectMany(type => type.GetMethods(
+            BindingFlags.Public | BindingFlags.NonPublic | BindingFlags.Static | BindingFlags.Instance)).ToArray();
+        Assert.DoesNotContain(methods, method => method.ReturnType == contextType || method.GetParameters().Any(parameter => parameter.ParameterType == contextType));
+    }
+
+    [Fact]
     public void ApiDoesNotExposeCustomersDbContext()
     {
         Type contextType = typeof(CustomersDbContext);
@@ -295,6 +327,7 @@ public sealed class DependencyRulesTests
             typeof(IdentityDbContext).Assembly,
             typeof(CustomersDbContext).Assembly,
             typeof(FakeMapsProvider).Assembly,
+            typeof(MerchantsDbContext).Assembly,
         ];
         Type[] migrationTypes = SolutionAssemblies()
             .SelectMany(assembly => assembly.GetTypes())
@@ -318,6 +351,9 @@ public sealed class DependencyRulesTests
         typeof(ServiceArea).Assembly,
         typeof(IServiceAreaRepository).Assembly,
         typeof(IMapsProvider).Assembly,
+        typeof(Merchant).Assembly,
+        typeof(IMerchantsService).Assembly,
+        typeof(MerchantResponse).Assembly,
     };
 
     private static void AssertDoesNotReference(Assembly assembly, string forbiddenName)
@@ -360,5 +396,9 @@ public sealed class DependencyRulesTests
         typeof(IServiceAreaRepository).Assembly,
         typeof(IMapsProvider).Assembly,
         typeof(FakeMapsProvider).Assembly,
+        typeof(Merchant).Assembly,
+        typeof(IMerchantsService).Assembly,
+        typeof(MerchantResponse).Assembly,
+        typeof(MerchantsDbContext).Assembly,
     ];
 }
