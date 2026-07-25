@@ -6,4 +6,10 @@ Dependencies point inward: Infrastructure may use Application and Domain; Applic
 
 Business endpoints added later should be grouped under `/api/v1`. Operational system endpoints remain under `/health` and `/api/system`.
 
+The Maps module owns the reusable geospatial foundation: service areas, spatial queries,
+provider-neutral geocoding, reverse geocoding, places, and routing contracts. Other
+modules consume `AlSsareea.Modules.Maps.Contracts`; they do not reference Maps
+Infrastructure or its DbContext. Customer and merchant addresses, delivery, dispatching,
+pricing, drivers, and live tracking remain outside Maps.
+
 Phase 4 adds the [Customers module](customers.md), which owns business profiles and commercial state while retaining a scalar-only boundary to Identity.

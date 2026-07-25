@@ -4,13 +4,19 @@ Backend foundation for **AlSsareea (عالسريع)**, a multilingual delivery p
 
 ## Status
 
-Phase 4 adds the Customers business-profile module on top of Phase 3 authentication: owned profiles, addresses, preferences, commercial status/history, PostGIS points, concurrency, ownership enforcement, and permission-protected administration. See [the Customers architecture](docs/architecture/customers.md).
+Phase 5 adds the Maps and geospatial foundation on top of the completed Identity,
+authentication, authorization, and Customers phases. The solution now includes owned
+customer profiles and addresses, provider-neutral maps contracts, service areas, PostGIS
+spatial queries, and a deterministic fake maps provider. See
+[the Customers architecture](docs/architecture/customers.md) and
+[the Maps architecture](docs/architecture/maps.md).
 
 ## Requirements
 
 - .NET SDK `10.0.302` or a newer compatible .NET 10 feature band
 - Docker Desktop or Docker Engine
 - Docker Compose
+- PostgreSQL with PostGIS when module persistence is used
 
 Restore the repository-local EF CLI tool and packages once:
 
@@ -38,12 +44,16 @@ docker compose down
 
 ## Connection string
 
-Identity and Customers own separate contexts and migration histories while normally using the same PostgreSQL database. Configure `ConnectionStrings:IdentityDatabase` and `ConnectionStrings:CustomersDatabase`. `appsettings.Development.json` contains local-only values matching Compose.
+Identity, Customers, and Maps own separate contexts and migration histories while normally
+using the same PostgreSQL database. Configure `ConnectionStrings:IdentityDatabase`,
+`ConnectionStrings:CustomersDatabase`, and `ConnectionStrings:MapsDatabase`.
+`appsettings.Development.json` contains local-only values matching Compose.
 
 ```powershell
 dotnet user-secrets init --project src/AlSsareea.Api
 dotnet user-secrets set "ConnectionStrings:IdentityDatabase" "Host=localhost;Port=5432;Database=alssareea;Username=alssareea;Password=<development-password>" --project src/AlSsareea.Api
 dotnet user-secrets set "ConnectionStrings:CustomersDatabase" "Host=localhost;Port=5432;Database=alssareea;Username=alssareea;Password=<development-password>" --project src/AlSsareea.Api
+dotnet user-secrets set "ConnectionStrings:MapsDatabase" "Host=localhost;Port=5432;Database=alssareea;Username=alssareea;Password=<development-password>" --project src/AlSsareea.Api
 ```
 
 No production connection string is stored in the repository.
@@ -68,6 +78,7 @@ Run from the repository root. The design-time factory uses `ConnectionStrings__I
 ```powershell
 $identityProject = ".\src\Modules\Identity\AlSsareea.Modules.Identity.Infrastructure\AlSsareea.Modules.Identity.Infrastructure.csproj"
 $customersProject = ".\src\Modules\Customers\AlSsareea.Modules.Customers.Infrastructure\AlSsareea.Modules.Customers.Infrastructure.csproj"
+$mapsProject = ".\src\Modules\Maps\AlSsareea.Modules.Maps.Infrastructure\AlSsareea.Modules.Maps.Infrastructure.csproj"
 
 dotnet ef migrations add <MigrationName> --project $identityProject --context IdentityDbContext --output-dir Persistence\Migrations
 dotnet ef database update --project $identityProject --context IdentityDbContext
@@ -76,6 +87,8 @@ dotnet ef migrations list --project $identityProject --context IdentityDbContext
 dotnet ef migrations has-pending-model-changes --project $identityProject --context IdentityDbContext
 dotnet ef database update --project $customersProject --context CustomersDbContext
 dotnet ef migrations has-pending-model-changes --project $customersProject --context CustomersDbContext
+dotnet ef database update --project $mapsProject --context MapsDbContext
+dotnet ef migrations has-pending-model-changes --project $mapsProject --context MapsDbContext
 ```
 
 Only remove a migration that has not been applied. Migrations are never applied automatically when the API starts.
@@ -135,6 +148,7 @@ Future versioned business endpoints will use the `/api/v1` base path. The unvers
 - `src/BuildingBlocks`: framework-neutral domain and application abstractions, contracts, and shared infrastructure implementations.
 - `src/Modules/Identity`: Identity domain, authentication application contracts, and persistence/security implementation.
 - `src/Modules/Customers`: Customer domain, stable HTTP contracts, application abstractions, and owned persistence.
+- `src/Modules/Maps`: Provider-neutral maps contracts, service areas, PostGIS persistence, and a deterministic fake provider.
 - `tests`: unit, integration, and architecture tests.
 - `docs`: architecture notes and Architecture Decision Records.
 
@@ -152,4 +166,8 @@ Keep domain code independent of application, infrastructure, and ASP.NET Core. A
 - Do not use EF Core InMemory or SQLite for persistence integration tests.
 - Do not run migrations automatically in production.
 
-Identity owns schema `identity`. Customers owns schema `customers`, a separate migration history, four tables, and PostGIS Point storage documented in `docs/architecture/customers.md`. There are no cross-schema foreign keys.
+Identity owns schema `identity`. Customers owns schema `customers`, a separate migration
+history, four tables, and PostGIS Point storage documented in
+`docs/architecture/customers.md`. Maps owns schema `maps`, service-area MultiPolygon
+boundaries, and its own migration history documented in `docs/architecture/maps.md`.
+There are no cross-schema foreign keys.

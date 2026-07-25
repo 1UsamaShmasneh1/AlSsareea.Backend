@@ -9,6 +9,10 @@ using AlSsareea.Modules.Identity.Application;
 using AlSsareea.Modules.Identity.Contracts;
 using AlSsareea.Modules.Identity.Domain;
 using AlSsareea.Modules.Identity.Infrastructure.Persistence;
+using AlSsareea.Modules.Maps.Application;
+using AlSsareea.Modules.Maps.Contracts;
+using AlSsareea.Modules.Maps.Domain;
+using AlSsareea.Modules.Maps.Infrastructure.Providers;
 
 namespace AlSsareea.ArchitectureTests;
 
@@ -98,19 +102,85 @@ public sealed class DependencyRulesTests
             .Concat(typeof(IdentityDbContext).Assembly.GetTypes())
             .Concat(typeof(ICustomersService).Assembly.GetTypes())
             .Concat(typeof(CustomersDbContext).Assembly.GetTypes())
+            .Concat(typeof(IServiceAreaRepository).Assembly.GetTypes())
+            .Concat(typeof(FakeMapsProvider).Assembly.GetTypes())
             .Where(type => type.Name.EndsWith("Repository", StringComparison.Ordinal))
             .Select(type => type.Name.TrimStart('I'))
             .Distinct(StringComparer.Ordinal)
             .Order(StringComparer.Ordinal)
             .ToArray();
 
-        Assert.Equal(["CustomerRepository", "PermissionRepository", "RoleRepository", "UserRepository"], repositoryNames);
+        Assert.Equal(
+            [
+                "CustomerRepository",
+                "PermissionRepository",
+                "RoleRepository",
+                "ServiceAreaRepository",
+                "UserRepository",
+            ],
+            repositoryNames);
     }
 
     [Fact]
     public void BuildingBlocksDomainDoesNotReferenceEntityFrameworkCore()
     {
         AssertDoesNotReference(typeof(Entity<>).Assembly, "Microsoft.EntityFrameworkCore");
+    }
+
+    [Fact]
+    public void MapsDomainDoesNotReferenceApplicationOrInfrastructure()
+    {
+        Assembly assembly = typeof(ServiceArea).Assembly;
+
+        AssertDoesNotReference(assembly, "AlSsareea.Modules.Maps.Application");
+        AssertDoesNotReference(assembly, "AlSsareea.Modules.Maps.Infrastructure");
+        AssertDoesNotReference(assembly, "Microsoft.EntityFrameworkCore");
+    }
+
+    [Fact]
+    public void MapsApplicationDoesNotReferenceInfrastructure()
+    {
+        AssertDoesNotReference(
+            typeof(IServiceAreaRepository).Assembly,
+            "AlSsareea.Modules.Maps.Infrastructure");
+    }
+
+    [Fact]
+    public void MapsContractsAreProviderNeutral()
+    {
+        Assembly assembly = typeof(IMapsProvider).Assembly;
+
+        AssertDoesNotReference(assembly, "Google");
+        AssertDoesNotReference(assembly, "Mapbox");
+        AssertDoesNotReference(assembly, "Npgsql");
+        AssertDoesNotReference(assembly, "NetTopologySuite");
+        AssertDoesNotReference(assembly, "AlSsareea.Modules.Maps.Infrastructure");
+    }
+
+    [Fact]
+    public void MapsProviderImplementationStaysInInfrastructure()
+    {
+        Assert.Contains(
+            ".Infrastructure",
+            typeof(FakeMapsProvider).Assembly.GetName().Name!,
+            StringComparison.Ordinal);
+    }
+
+    [Fact]
+    public void IdentityModuleDoesNotAccessMapsInfrastructure()
+    {
+        AssertDoesNotReference(
+            typeof(User).Assembly,
+            "AlSsareea.Modules.Maps.Infrastructure");
+        AssertDoesNotReference(
+            typeof(IIdentityModule).Assembly,
+            "AlSsareea.Modules.Maps.Infrastructure");
+        AssertDoesNotReference(
+            typeof(Customer).Assembly,
+            "AlSsareea.Modules.Maps.Infrastructure");
+        AssertDoesNotReference(
+            typeof(ICustomersService).Assembly,
+            "AlSsareea.Modules.Maps.Infrastructure");
     }
 
     [Theory]
@@ -177,6 +247,18 @@ public sealed class DependencyRulesTests
     }
 
     [Fact]
+    public void MapsInfrastructureDoesNotReferenceAnotherModuleInfrastructure()
+    {
+        string[] references = typeof(FakeMapsProvider).Assembly.GetReferencedAssemblies()
+            .Select(reference => reference.Name ?? string.Empty)
+            .Where(name => name.StartsWith("AlSsareea.Modules.", StringComparison.Ordinal))
+            .Where(name => name.EndsWith(".Infrastructure", StringComparison.Ordinal))
+            .ToArray();
+
+        Assert.Empty(references);
+    }
+
+    [Fact]
     public void CustomersLayersRespectDependencyDirectionAndIdentityBoundary()
     {
         AssertDoesNotReference(typeof(Customer).Assembly, "Microsoft.EntityFrameworkCore");
@@ -208,7 +290,12 @@ public sealed class DependencyRulesTests
     [Fact]
     public void MigrationsExistOnlyInModuleInfrastructure()
     {
-        Assembly[] infrastructure = [typeof(IdentityDbContext).Assembly, typeof(CustomersDbContext).Assembly];
+        Assembly[] infrastructure =
+        [
+            typeof(IdentityDbContext).Assembly,
+            typeof(CustomersDbContext).Assembly,
+            typeof(FakeMapsProvider).Assembly,
+        ];
         Type[] migrationTypes = SolutionAssemblies()
             .SelectMany(assembly => assembly.GetTypes())
             .Where(type => InheritsFrom(type, "Microsoft.EntityFrameworkCore.Migrations.Migration"))
@@ -228,6 +315,9 @@ public sealed class DependencyRulesTests
         typeof(Customer).Assembly,
         typeof(ICustomersService).Assembly,
         typeof(CustomerResponse).Assembly,
+        typeof(ServiceArea).Assembly,
+        typeof(IServiceAreaRepository).Assembly,
+        typeof(IMapsProvider).Assembly,
     };
 
     private static void AssertDoesNotReference(Assembly assembly, string forbiddenName)
@@ -266,5 +356,9 @@ public sealed class DependencyRulesTests
         typeof(ICustomersService).Assembly,
         typeof(CustomerResponse).Assembly,
         typeof(CustomersDbContext).Assembly,
+        typeof(ServiceArea).Assembly,
+        typeof(IServiceAreaRepository).Assembly,
+        typeof(IMapsProvider).Assembly,
+        typeof(FakeMapsProvider).Assembly,
     ];
 }
