@@ -13,3 +13,8 @@ Infrastructure or its DbContext. Customer and merchant addresses, delivery, disp
 pricing, drivers, and live tracking remain outside Maps.
 
 Phase 4 adds the [Customers module](customers.md), which owns business profiles and commercial state while retaining a scalar-only boundary to Identity.
+
+Phase 6 adds the [Merchants module](merchants.md), which owns merchant and branch
+lifecycles, scoped memberships, relational schedules, branch locations, and service-area
+assignments. It validates Identity users and Maps service areas through public contracts
+without cross-module Infrastructure references or cross-schema foreign keys.

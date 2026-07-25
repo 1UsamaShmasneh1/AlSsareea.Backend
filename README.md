@@ -4,12 +4,13 @@ Backend foundation for **AlSsareea (عالسريع)**, a multilingual delivery p
 
 ## Status
 
-Phase 5 adds the Maps and geospatial foundation on top of the completed Identity,
-authentication, authorization, and Customers phases. The solution now includes owned
-customer profiles and addresses, provider-neutral maps contracts, service areas, PostGIS
-spatial queries, and a deterministic fake maps provider. See
+Phase 6 adds the Merchants foundation on top of the completed Identity, authentication,
+authorization, Customers, and Maps phases. The solution now includes merchant and branch
+lifecycles, scoped employees and ownership, relational schedules and overrides, PostGIS
+branch locations, and Maps-owned service-area assignments. See
 [the Customers architecture](docs/architecture/customers.md) and
-[the Maps architecture](docs/architecture/maps.md).
+[the Maps architecture](docs/architecture/maps.md), and
+[the Merchants architecture](docs/architecture/merchants.md).
 
 ## Requirements
 
@@ -149,6 +150,7 @@ Future versioned business endpoints will use the `/api/v1` base path. The unvers
 - `src/Modules/Identity`: Identity domain, authentication application contracts, and persistence/security implementation.
 - `src/Modules/Customers`: Customer domain, stable HTTP contracts, application abstractions, and owned persistence.
 - `src/Modules/Maps`: Provider-neutral maps contracts, service areas, PostGIS persistence, and a deterministic fake provider.
+- `src/Modules/Merchants`: Merchant and branch lifecycles, schedules, service-area assignments, ownership, and merchant-scoped memberships.
 - `tests`: unit, integration, and architecture tests.
 - `docs`: architecture notes and Architecture Decision Records.
 

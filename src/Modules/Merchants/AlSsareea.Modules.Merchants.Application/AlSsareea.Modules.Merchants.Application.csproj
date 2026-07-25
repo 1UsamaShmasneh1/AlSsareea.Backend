@@ -1,0 +1,12 @@
+<Project Sdk="Microsoft.NET.Sdk">
+  <ItemGroup>
+    <PackageReference Include="Microsoft.Extensions.DependencyInjection.Abstractions" />
+  </ItemGroup>
+  <ItemGroup>
+    <ProjectReference Include="..\..\..\BuildingBlocks\AlSsareea.BuildingBlocks.Application\AlSsareea.BuildingBlocks.Application.csproj" />
+    <ProjectReference Include="..\..\Identity\AlSsareea.Modules.Identity.Contracts\AlSsareea.Modules.Identity.Contracts.csproj" />
+    <ProjectReference Include="..\..\Maps\AlSsareea.Modules.Maps.Contracts\AlSsareea.Modules.Maps.Contracts.csproj" />
+    <ProjectReference Include="..\AlSsareea.Modules.Merchants.Contracts\AlSsareea.Modules.Merchants.Contracts.csproj" />
+    <ProjectReference Include="..\AlSsareea.Modules.Merchants.Domain\AlSsareea.Modules.Merchants.Domain.csproj" />
+  </ItemGroup>
+</Project>

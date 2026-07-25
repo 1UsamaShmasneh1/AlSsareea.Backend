@@ -13,6 +13,8 @@ using AlSsareea.Modules.Identity.Application;
 using AlSsareea.Modules.Identity.Infrastructure;
 using AlSsareea.Modules.Maps.Application;
 using AlSsareea.Modules.Maps.Infrastructure;
+using AlSsareea.Modules.Merchants.Application;
+using AlSsareea.Modules.Merchants.Infrastructure;
 using Microsoft.AspNetCore.Authentication.JwtBearer;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Localization;
@@ -77,6 +79,8 @@ public static class ServiceCollectionExtensions
             AddFixedWindow(options, "customers-address-write", 30, 60);
             AddFixedWindow(options, "customers-admin-read", 120, 60);
             AddFixedWindow(options, "customers-admin-write", 30, 60);
+            AddFixedWindow(options, "merchants-read", 120, 60);
+            AddFixedWindow(options, "merchants-write", 40, 60);
         });
 
         services.ConfigureHttpJsonOptions(options =>
@@ -101,6 +105,8 @@ public static class ServiceCollectionExtensions
         services.AddCustomersInfrastructure(configuration);
         services.AddMapsApplication();
         services.AddMapsInfrastructure(configuration);
+        services.AddMerchantsApplication();
+        services.AddMerchantsInfrastructure(configuration);
 
         return services;
     }
