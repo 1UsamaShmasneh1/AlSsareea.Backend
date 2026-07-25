@@ -8,11 +8,11 @@ using AlSsareea.Modules.Customers.Infrastructure.Persistence;
 using AlSsareea.Modules.Identity.Application;
 using AlSsareea.Modules.Identity.Contracts;
 using AlSsareea.Modules.Identity.Domain;
+using AlSsareea.Modules.Identity.Infrastructure.Persistence;
 using AlSsareea.Modules.Maps.Application;
 using AlSsareea.Modules.Maps.Contracts;
 using AlSsareea.Modules.Maps.Domain;
 using AlSsareea.Modules.Maps.Infrastructure.Providers;
-using AlSsareea.Modules.Identity.Infrastructure.Persistence;
 
 namespace AlSsareea.ArchitectureTests;
 
