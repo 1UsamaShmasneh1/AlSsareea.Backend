@@ -11,11 +11,8 @@ using AlSsareea.Modules.Customers.Application;
 using AlSsareea.Modules.Customers.Infrastructure;
 using AlSsareea.Modules.Identity.Application;
 using AlSsareea.Modules.Identity.Infrastructure;
-<<<<<<< HEAD
 using AlSsareea.Modules.Maps.Application;
 using AlSsareea.Modules.Maps.Infrastructure;
-=======
->>>>>>> origin/main
 using Microsoft.AspNetCore.Authentication.JwtBearer;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Localization;
@@ -102,11 +99,8 @@ public static class ServiceCollectionExtensions
         services.AddIdentityInfrastructure(configuration);
         services.AddCustomersApplication();
         services.AddCustomersInfrastructure(configuration);
-<<<<<<< HEAD
         services.AddMapsApplication();
         services.AddMapsInfrastructure(configuration);
-=======
->>>>>>> origin/main
 
         return services;
     }
