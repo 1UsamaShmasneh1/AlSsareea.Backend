@@ -4,15 +4,17 @@ Backend foundation for **AlSsareea (عالسريع)**, a multilingual delivery p
 
 ## Status
 
-Phase 7 adds the Catalog module on top of the completed Identity, authentication,
+Phase 8 adds the Media module on top of the completed Identity, authentication,
 authorization, Customers, and Maps phases. The solution now includes merchant and branch
 lifecycles, scoped employees and ownership, relational schedules and overrides, PostGIS
 branch locations, Maps-owned service-area assignments, and merchant-owned localized
-catalogs and products. See
+catalogs and products, plus validated local image storage, variants, lifecycle management,
+and contract-based Catalog media references. See
 [the Customers architecture](docs/architecture/customers.md) and
 [the Maps architecture](docs/architecture/maps.md), and
 [the Merchants architecture](docs/architecture/merchants.md), and
-[the Catalog module](docs/modules/catalog.md).
+[the Catalog module](docs/modules/catalog.md), and
+[the Media module](docs/modules/media.md).
 
 ## Requirements
 
@@ -47,10 +49,11 @@ docker compose down
 
 ## Connection string
 
-Identity, Customers, Maps, Merchants, and Catalog own separate contexts and migration histories while normally
+Identity, Customers, Maps, Merchants, Catalog, and Media own separate contexts and migration histories while normally
 using the same PostgreSQL database. Configure `ConnectionStrings:IdentityDatabase`,
 `ConnectionStrings:CustomersDatabase`, `ConnectionStrings:MapsDatabase`,
-`ConnectionStrings:MerchantsDatabase`, and `ConnectionStrings:CatalogDatabase`.
+`ConnectionStrings:MerchantsDatabase`, `ConnectionStrings:CatalogDatabase`, and
+`ConnectionStrings:MediaDatabase`.
 `appsettings.Development.json` contains local-only values matching Compose.
 
 ```powershell
@@ -84,6 +87,7 @@ $identityProject = ".\src\Modules\Identity\AlSsareea.Modules.Identity.Infrastruc
 $customersProject = ".\src\Modules\Customers\AlSsareea.Modules.Customers.Infrastructure\AlSsareea.Modules.Customers.Infrastructure.csproj"
 $mapsProject = ".\src\Modules\Maps\AlSsareea.Modules.Maps.Infrastructure\AlSsareea.Modules.Maps.Infrastructure.csproj"
 $catalogProject = ".\src\Modules\Catalog\AlSsareea.Modules.Catalog.Infrastructure\AlSsareea.Modules.Catalog.Infrastructure.csproj"
+$mediaProject = ".\src\Modules\Media\AlSsareea.Modules.Media.Infrastructure\AlSsareea.Modules.Media.Infrastructure.csproj"
 
 dotnet ef migrations add <MigrationName> --project $identityProject --context IdentityDbContext --output-dir Persistence\Migrations
 dotnet ef database update --project $identityProject --context IdentityDbContext
@@ -96,6 +100,8 @@ dotnet ef database update --project $mapsProject --context MapsDbContext
 dotnet ef migrations has-pending-model-changes --project $mapsProject --context MapsDbContext
 dotnet ef database update --project $catalogProject --context CatalogDbContext
 dotnet ef migrations has-pending-model-changes --project $catalogProject --context CatalogDbContext
+dotnet ef database update --project $mediaProject --context MediaDbContext
+dotnet ef migrations has-pending-model-changes --project $mediaProject --context MediaDbContext
 ```
 
 Only remove a migration that has not been applied. Migrations are never applied automatically when the API starts.

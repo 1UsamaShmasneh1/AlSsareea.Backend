@@ -4,12 +4,13 @@ using AlSsareea.Modules.Catalog.Application;
 using AlSsareea.Modules.Catalog.Contracts;
 using AlSsareea.Modules.Catalog.Domain;
 using AlSsareea.Modules.Catalog.Infrastructure.Persistence;
+using AlSsareea.Modules.Media.Contracts;
 using AlSsareea.Modules.Merchants.Contracts;
 using Microsoft.EntityFrameworkCore;
 
 namespace AlSsareea.Modules.Catalog.Infrastructure;
 
-internal sealed class CatalogService(CatalogDbContext db, ICatalogRepository catalogs, IProductRepository products, IMerchantCatalogScopeProvider merchants, IClock clock) : ICatalogService, IProductSnapshotProvider
+internal sealed class CatalogService(CatalogDbContext db, ICatalogRepository catalogs, IProductRepository products, IMerchantCatalogScopeProvider merchants, IMediaAssetLookup media, IClock clock) : ICatalogService, IProductSnapshotProvider
 {
     public async Task<CatalogOperationResult<CatalogResponse>> CreateCatalogAsync(Guid merchantId, CreateCatalogRequest r, CatalogActor actor, CancellationToken ct) => await Run(async () =>
     {
@@ -74,6 +75,18 @@ internal sealed class CatalogService(CatalogDbContext db, ICatalogRepository cat
         if (catalog is null || category is null) return NotFound<CategoryResponse>();
         if (category.ConcurrencyStamp != r.ConcurrencyStamp) return Conflict<CategoryResponse>();
         category.SetVisibility(visible, clock.UtcNow); await db.SaveChangesAsync(ct);
+        return CatalogOperation.Success(ToResponse(category, null, catalog.DefaultLanguage));
+    });
+    public async Task<CatalogOperationResult<CategoryResponse>> SetCategoryImageAsync(Guid merchantId, Guid categoryId, SetCatalogImageRequest r, CatalogActor actor, CancellationToken ct) => await Run(async () =>
+    {
+        if (!await CanManage(merchantId, actor, ct)) return Forbidden<CategoryResponse>();
+        Catalog.Domain.Catalog? catalog = await catalogs.GetAsync(merchantId, ct);
+        Category? category = await db.Categories.Include(x => x.Translations).SingleOrDefaultAsync(x => x.Id == new CategoryId(categoryId) && x.MerchantId == merchantId, ct);
+        if (catalog is null || category is null) return NotFound<CategoryResponse>();
+        if (category.ConcurrencyStamp != r.ConcurrencyStamp) return Conflict<CategoryResponse>();
+        if (r.MediaAssetId.HasValue && !await media.CanUseAsync(r.MediaAssetId.Value, merchantId, "CatalogCategory", categoryId, ct)) return Invalid<CategoryResponse>("invalid_media_asset");
+        category.SetImage(r.MediaAssetId, clock.UtcNow);
+        await db.SaveChangesAsync(ct);
         return CatalogOperation.Success(ToResponse(category, null, catalog.DefaultLanguage));
     });
     public async Task<CatalogOperationResult<IReadOnlyList<CategoryResponse>>> ReorderCategoriesAsync(Guid merchantId, ReorderRequest r, CatalogActor actor, CancellationToken ct) => await Run(async () =>
@@ -271,11 +284,21 @@ internal sealed class CatalogService(CatalogDbContext db, ICatalogRepository cat
         Product? x = await products.GetAsync(merchantId, new ProductId(productId), true, ct);
         if (x is null) return NotFound<ChildMutationResponse>();
         if (x.ConcurrencyStamp != r.ConcurrencyStamp) return Conflict<ChildMutationResponse>();
+        if (r.MediaId.HasValue && !await media.CanUseAsync(r.MediaId.Value, merchantId, "CatalogProduct", productId, ct)) return Invalid<ChildMutationResponse>("invalid_media_asset");
         ProductImageReference child = x.AddImage(r.MediaId, r.ExternalReference, r.AltText, r.SortOrder, r.IsPrimary, clock.UtcNow);
         await db.SaveChangesAsync(ct); return CatalogOperation.Created(new ChildMutationResponse(x.Id.Value, child.Id.Value, x.CurrentVersion, x.ConcurrencyStamp));
     });
-    public Task<CatalogOperationResult<ChildMutationResponse>> UpdateImageAsync(Guid merchantId, Guid productId, Guid imageId, UpdateImageReferenceRequest r, CatalogActor actor, CancellationToken ct) =>
-        MutateChild(merchantId, productId, r.ConcurrencyStamp, actor, x => x.UpdateImage(new ProductImageReferenceId(imageId), r.MediaId, r.ExternalReference, r.AltText, r.SortOrder, r.IsPrimary, clock.UtcNow).Id.Value, ct);
+    public async Task<CatalogOperationResult<ChildMutationResponse>> UpdateImageAsync(Guid merchantId, Guid productId, Guid imageId, UpdateImageReferenceRequest r, CatalogActor actor, CancellationToken ct) => await Run(async () =>
+    {
+        if (!await CanManage(merchantId, actor, ct)) return Forbidden<ChildMutationResponse>();
+        Product? product = await products.GetAsync(merchantId, new ProductId(productId), true, ct);
+        if (product is null) return NotFound<ChildMutationResponse>();
+        if (product.ConcurrencyStamp != r.ConcurrencyStamp) return Conflict<ChildMutationResponse>();
+        if (r.MediaId.HasValue && !await media.CanUseAsync(r.MediaId.Value, merchantId, "CatalogProduct", productId, ct)) return Invalid<ChildMutationResponse>("invalid_media_asset");
+        Guid childId = product.UpdateImage(new ProductImageReferenceId(imageId), r.MediaId, r.ExternalReference, r.AltText, r.SortOrder, r.IsPrimary, clock.UtcNow).Id.Value;
+        await db.SaveChangesAsync(ct);
+        return CatalogOperation.Success(new ChildMutationResponse(product.Id.Value, childId, product.CurrentVersion, product.ConcurrencyStamp));
+    });
     public Task<CatalogOperationResult<ChildMutationResponse>> SetPrimaryImageAsync(Guid merchantId, Guid productId, Guid imageId, ConcurrencyRequest r, CatalogActor actor, CancellationToken ct) =>
         MutateChild(merchantId, productId, r.ConcurrencyStamp, actor, x => { x.SetPrimaryImage(new ProductImageReferenceId(imageId), clock.UtcNow); return imageId; }, ct);
     public Task<CatalogOperationResult<ChildMutationResponse>> RemoveImageAsync(Guid merchantId, Guid productId, Guid imageId, CatalogActor actor, CancellationToken ct) =>
@@ -349,7 +372,7 @@ internal sealed class CatalogService(CatalogDbContext db, ICatalogRepository cat
         CategoryTranslation text = x.Translations.FirstOrDefault(v => v.LanguageCode == language)
             ?? x.Translations.FirstOrDefault(v => v.LanguageCode == fallback)
             ?? x.Translations.First();
-        return new(x.Id.Value, x.CatalogId.Value, x.MerchantId, x.ParentCategoryId?.Value, x.SortOrder, x.IsVisible, new(text.LanguageCode, text.Name, text.Description), x.ConcurrencyStamp);
+        return new(x.Id.Value, x.CatalogId.Value, x.MerchantId, x.ParentCategoryId?.Value, x.MediaAssetId, x.SortOrder, x.IsVisible, new(text.LanguageCode, text.Name, text.Description), x.ConcurrencyStamp);
     }
     private static MenuSectionResponse ToResponse(MenuSection x, string? language, string fallback)
     {

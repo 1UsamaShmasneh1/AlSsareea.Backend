@@ -3,6 +3,9 @@
     <ProjectReference Include="..\Modules\Catalog\AlSsareea.Modules.Catalog.Application\AlSsareea.Modules.Catalog.Application.csproj" />
     <ProjectReference Include="..\Modules\Catalog\AlSsareea.Modules.Catalog.Contracts\AlSsareea.Modules.Catalog.Contracts.csproj" />
     <ProjectReference Include="..\Modules\Catalog\AlSsareea.Modules.Catalog.Infrastructure\AlSsareea.Modules.Catalog.Infrastructure.csproj" />
+    <ProjectReference Include="..\Modules\Media\AlSsareea.Modules.Media.Application\AlSsareea.Modules.Media.Application.csproj" />
+    <ProjectReference Include="..\Modules\Media\AlSsareea.Modules.Media.Contracts\AlSsareea.Modules.Media.Contracts.csproj" />
+    <ProjectReference Include="..\Modules\Media\AlSsareea.Modules.Media.Infrastructure\AlSsareea.Modules.Media.Infrastructure.csproj" />
     <PackageReference Include="Microsoft.AspNetCore.OpenApi" />
     <PackageReference Include="Microsoft.AspNetCore.Authentication.JwtBearer" />
     <PackageReference Include="Microsoft.OpenApi" />

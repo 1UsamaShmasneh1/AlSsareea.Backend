@@ -24,3 +24,8 @@ categories, menu sections, localized products, variants, selectable options, ima
 references, availability schedules, inventory presentation state, price composition, and
 immutable product snapshots. It asks Merchants for scope through a Contracts interface and
 does not read the Merchants schema or reference Merchants Infrastructure.
+
+Phase 8 adds the [Media module](../modules/media.md). Media owns image validation,
+local-provider storage, metadata, processing variants, ownership, access level, lifecycle,
+and cleanup. Catalog validates media references through `IMediaAssetLookup`; neither module
+reads the other's schema, and no cross-schema foreign key is created.

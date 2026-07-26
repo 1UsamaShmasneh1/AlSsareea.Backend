@@ -24,6 +24,7 @@ public interface ICatalogService
     Task<CatalogOperationResult<IReadOnlyList<CategoryResponse>>> ListCategoriesAsync(Guid merchantId, bool publicOnly, string? language, CatalogActor actor, CancellationToken ct);
     Task<CatalogOperationResult<CategoryResponse>> UpdateCategoryAsync(Guid merchantId, Guid categoryId, UpdateCategoryRequest request, CatalogActor actor, CancellationToken ct);
     Task<CatalogOperationResult<CategoryResponse>> SetCategoryVisibilityAsync(Guid merchantId, Guid categoryId, bool visible, ConcurrencyRequest request, CatalogActor actor, CancellationToken ct);
+    Task<CatalogOperationResult<CategoryResponse>> SetCategoryImageAsync(Guid merchantId, Guid categoryId, SetCatalogImageRequest request, CatalogActor actor, CancellationToken ct);
     Task<CatalogOperationResult<IReadOnlyList<CategoryResponse>>> ReorderCategoriesAsync(Guid merchantId, ReorderRequest request, CatalogActor actor, CancellationToken ct);
     Task<CatalogOperationResult<MenuSectionResponse>> CreateSectionAsync(Guid merchantId, CreateMenuSectionRequest request, CatalogActor actor, CancellationToken ct);
     Task<CatalogOperationResult<IReadOnlyList<MenuSectionResponse>>> ListSectionsAsync(Guid merchantId, bool publicOnly, string? language, CatalogActor actor, CancellationToken ct);

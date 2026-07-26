@@ -102,6 +102,25 @@ public sealed class CatalogDomainTests
             product.SetTranslation("fr", "Café", null, Now.AddMinutes(3)));
     }
 
+    [Fact]
+    public void CategoryImageIsOptionalAndProductRejectsDuplicateMediaReference()
+    {
+        Category category = Category.Create(
+            CategoryId.New(), CatalogId.New(), Guid.NewGuid(), null, 0,
+            "en", "Meals", null, Now);
+        Guid mediaId = Guid.NewGuid();
+
+        category.SetImage(mediaId, Now.AddMinutes(1));
+        Assert.Equal(mediaId, category.MediaAssetId);
+        category.SetImage(null, Now.AddMinutes(2));
+        Assert.Null(category.MediaAssetId);
+
+        Product product = CreateProduct();
+        product.AddImage(mediaId, null, null, 0, true, Now.AddMinutes(1));
+        Assert.Throws<DomainException>(() =>
+            product.AddImage(mediaId, null, null, 1, false, Now.AddMinutes(2)));
+    }
+
     private static Product CreateProduct() =>
         Product.Create(
             ProductId.New(),
