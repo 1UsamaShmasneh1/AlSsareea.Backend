@@ -15,6 +15,7 @@ using AlSsareea.Modules.Identity.Application;
 using AlSsareea.Modules.Identity.Infrastructure;
 using AlSsareea.Modules.Maps.Application;
 using AlSsareea.Modules.Maps.Infrastructure;
+using AlSsareea.Modules.Media.Infrastructure;
 using AlSsareea.Modules.Merchants.Application;
 using AlSsareea.Modules.Merchants.Infrastructure;
 using Microsoft.AspNetCore.Authentication.JwtBearer;
@@ -113,6 +114,7 @@ public static class ServiceCollectionExtensions
         services.AddMerchantsInfrastructure(configuration);
         services.AddCatalogApplication();
         services.AddCatalogInfrastructure(configuration);
+        services.AddMediaInfrastructure(configuration);
 
         return services;
     }

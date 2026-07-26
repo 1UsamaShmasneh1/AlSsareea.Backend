@@ -6,7 +6,8 @@ public sealed record UpdateCatalogRequest(string Name, string? Description, stri
 public sealed record ConcurrencyRequest(Guid ConcurrencyStamp);
 public sealed record CreateCategoryRequest(Guid? ParentCategoryId, int SortOrder, TranslationRequest Translation);
 public sealed record UpdateCategoryRequest(Guid? ParentCategoryId, int SortOrder, TranslationRequest Translation, Guid ConcurrencyStamp);
-public sealed record CategoryResponse(Guid Id, Guid CatalogId, Guid MerchantId, Guid? ParentCategoryId, int SortOrder, bool IsVisible, LocalizedTextResponse Text, Guid ConcurrencyStamp);
+public sealed record CategoryResponse(Guid Id, Guid CatalogId, Guid MerchantId, Guid? ParentCategoryId, Guid? MediaAssetId, int SortOrder, bool IsVisible, LocalizedTextResponse Text, Guid ConcurrencyStamp);
+public sealed record SetCatalogImageRequest(Guid? MediaAssetId, Guid ConcurrencyStamp);
 public sealed record CreateMenuSectionRequest(int SortOrder, DateTime? AvailableFromUtc, DateTime? AvailableUntilUtc, TranslationRequest Translation);
 public sealed record UpdateMenuSectionRequest(int SortOrder, DateTime? AvailableFromUtc, DateTime? AvailableUntilUtc, TranslationRequest Translation, Guid ConcurrencyStamp);
 public sealed record AddSectionProductRequest(Guid ProductId, int SortOrder, Guid ConcurrencyStamp);

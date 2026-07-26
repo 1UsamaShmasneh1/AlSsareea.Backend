@@ -32,6 +32,7 @@ public sealed class Category : AggregateRoot<CategoryId>
     public CatalogId CatalogId { get; private set; }
     public Guid MerchantId { get; private set; }
     public CategoryId? ParentCategoryId { get; private set; }
+    public Guid? MediaAssetId { get; private set; }
     public int SortOrder { get; private set; }
     public bool IsVisible { get; private set; }
     public DateTime CreatedAtUtc { get; private set; }
@@ -42,6 +43,7 @@ public sealed class Category : AggregateRoot<CategoryId>
     public void Move(CategoryId? parentId, IReadOnlySet<CategoryId> descendants, DateTime now) { if (parentId == Id || (parentId.HasValue && descendants.Contains(parentId.Value))) throw new DomainException("Category hierarchy cannot contain a cycle."); ParentCategoryId = parentId; Touch(now); }
     public void SetTranslation(string language, string name, string? description, DateTime now) { string lang = CatalogRules.Language(language); CategoryTranslation? existing = _translations.SingleOrDefault(x => x.LanguageCode == lang); if (existing is null) _translations.Add(new CategoryTranslation(Id, lang, name, description)); else existing.Update(name, description); Touch(now); }
     public void SetVisibility(bool visible, DateTime now) { IsVisible = visible; Touch(now); }
+    public void SetImage(Guid? mediaAssetId, DateTime now) { if (mediaAssetId == Guid.Empty) throw new DomainException("Media asset ID cannot be empty."); MediaAssetId = mediaAssetId; Touch(now); }
     public void Reorder(int order, DateTime now) { CatalogRules.Sort(order); SortOrder = order; Touch(now); }
     public void Update(CategoryId? parentId, IReadOnlySet<CategoryId> descendants, int sortOrder, string language, string name, string? description, DateTime now)
     {
