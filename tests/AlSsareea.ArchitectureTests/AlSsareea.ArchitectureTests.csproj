@@ -30,6 +30,10 @@
     <ProjectReference Include="..\..\src\Modules\Merchants\AlSsareea.Modules.Merchants.Contracts\AlSsareea.Modules.Merchants.Contracts.csproj" />
     <ProjectReference Include="..\..\src\Modules\Merchants\AlSsareea.Modules.Merchants.Domain\AlSsareea.Modules.Merchants.Domain.csproj" />
     <ProjectReference Include="..\..\src\Modules\Merchants\AlSsareea.Modules.Merchants.Infrastructure\AlSsareea.Modules.Merchants.Infrastructure.csproj" />
+    <ProjectReference Include="..\..\src\Modules\Catalog\AlSsareea.Modules.Catalog.Application\AlSsareea.Modules.Catalog.Application.csproj" />
+    <ProjectReference Include="..\..\src\Modules\Catalog\AlSsareea.Modules.Catalog.Contracts\AlSsareea.Modules.Catalog.Contracts.csproj" />
+    <ProjectReference Include="..\..\src\Modules\Catalog\AlSsareea.Modules.Catalog.Domain\AlSsareea.Modules.Catalog.Domain.csproj" />
+    <ProjectReference Include="..\..\src\Modules\Catalog\AlSsareea.Modules.Catalog.Infrastructure\AlSsareea.Modules.Catalog.Infrastructure.csproj" />
   </ItemGroup>
   <ItemGroup>
     <Using Include="Xunit" />

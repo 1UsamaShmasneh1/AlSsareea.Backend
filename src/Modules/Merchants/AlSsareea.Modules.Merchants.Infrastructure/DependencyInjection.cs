@@ -1,4 +1,5 @@
 using AlSsareea.Modules.Merchants.Application;
+using AlSsareea.Modules.Merchants.Contracts;
 using AlSsareea.Modules.Merchants.Infrastructure.Persistence;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Configuration;
@@ -23,6 +24,7 @@ public static class DependencyInjection
         services.AddScoped<IMerchantBranchRepository, MerchantBranchRepository>();
         services.AddScoped<IMerchantEmployeeRepository, MerchantEmployeeRepository>();
         services.AddScoped<IMerchantsService, MerchantsService>();
+        services.AddScoped<IMerchantCatalogScopeProvider, MerchantCatalogScopeProvider>();
         return services;
     }
 }

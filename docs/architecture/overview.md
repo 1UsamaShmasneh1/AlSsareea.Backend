@@ -18,3 +18,9 @@ Phase 6 adds the [Merchants module](merchants.md), which owns merchant and branc
 lifecycles, scoped memberships, relational schedules, branch locations, and service-area
 assignments. It validates Identity users and Maps service areas through public contracts
 without cross-module Infrastructure references or cross-schema foreign keys.
+
+Phase 7 adds the [Catalog module](../modules/catalog.md). Catalog owns merchant catalogs,
+categories, menu sections, localized products, variants, selectable options, image
+references, availability schedules, inventory presentation state, price composition, and
+immutable product snapshots. It asks Merchants for scope through a Contracts interface and
+does not read the Merchants schema or reference Merchants Infrastructure.

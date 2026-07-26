@@ -38,3 +38,23 @@ public sealed record ChangeMerchantEmployeeRoleRequest(short Role, Guid Concurre
 public sealed record AssignMerchantEmployeeBranchRequest(Guid BranchId, Guid ConcurrencyStamp);
 public sealed record MerchantEmployeeActionRequest(Guid ConcurrencyStamp);
 public sealed record MerchantEmployeeResponse(Guid Id, Guid MerchantId, Guid UserId, Guid? BranchId, short Role, short Status, DateTime? JoinedAtUtc, DateTime? SuspendedAtUtc, DateTime? RemovedAtUtc, DateTime CreatedAtUtc, DateTime UpdatedAtUtc, Guid ConcurrencyStamp);
+
+public sealed record MerchantCatalogScope(
+    Guid MerchantId,
+    bool MerchantIsActive,
+    bool CanManageMerchant,
+    Guid? RestrictedBranchId);
+
+public interface IMerchantCatalogScopeProvider
+{
+    Task<MerchantCatalogScope?> GetScopeAsync(
+        Guid merchantId,
+        Guid userId,
+        bool isPlatformOperator,
+        CancellationToken cancellationToken = default);
+
+    Task<bool> IsOperationalBranchAsync(
+        Guid merchantId,
+        Guid branchId,
+        CancellationToken cancellationToken = default);
+}

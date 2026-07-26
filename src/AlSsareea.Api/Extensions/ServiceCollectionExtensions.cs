@@ -7,6 +7,8 @@ using AlSsareea.Api.Security;
 using AlSsareea.Api.Serialization;
 using AlSsareea.BuildingBlocks.Application.Localization;
 using AlSsareea.BuildingBlocks.Infrastructure;
+using AlSsareea.Modules.Catalog.Application;
+using AlSsareea.Modules.Catalog.Infrastructure;
 using AlSsareea.Modules.Customers.Application;
 using AlSsareea.Modules.Customers.Infrastructure;
 using AlSsareea.Modules.Identity.Application;
@@ -81,6 +83,8 @@ public static class ServiceCollectionExtensions
             AddFixedWindow(options, "customers-admin-write", 30, 60);
             AddFixedWindow(options, "merchants-read", 120, 60);
             AddFixedWindow(options, "merchants-write", 40, 60);
+            AddFixedWindow(options, "catalog-read", 180, 60);
+            AddFixedWindow(options, "catalog-write", 60, 60);
         });
 
         services.ConfigureHttpJsonOptions(options =>
@@ -107,6 +111,8 @@ public static class ServiceCollectionExtensions
         services.AddMapsInfrastructure(configuration);
         services.AddMerchantsApplication();
         services.AddMerchantsInfrastructure(configuration);
+        services.AddCatalogApplication();
+        services.AddCatalogInfrastructure(configuration);
 
         return services;
     }
