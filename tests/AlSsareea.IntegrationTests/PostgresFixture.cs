@@ -1,3 +1,4 @@
+using AlSsareea.Modules.Catalog.Infrastructure.Persistence;
 using AlSsareea.Modules.Customers.Infrastructure.Persistence;
 using AlSsareea.Modules.Identity.Infrastructure.Persistence;
 using AlSsareea.Modules.Merchants.Infrastructure.Persistence;
@@ -31,6 +32,8 @@ public sealed class PostgresFixture : IAsyncLifetime
         await customersDbContext.Database.MigrateAsync();
         MerchantsDbContext merchantsDbContext = scope.ServiceProvider.GetRequiredService<MerchantsDbContext>();
         await merchantsDbContext.Database.MigrateAsync();
+        CatalogDbContext catalogDbContext = scope.ServiceProvider.GetRequiredService<CatalogDbContext>();
+        await catalogDbContext.Database.MigrateAsync();
     }
 
     public async Task DisposeAsync()
