@@ -20,6 +20,7 @@ using AlSsareea.Modules.Merchants.Application;
 using AlSsareea.Modules.Merchants.Infrastructure;
 using AlSsareea.Modules.Pricing.Application;
 using AlSsareea.Modules.Pricing.Infrastructure;
+using AlSsareea.Modules.Promotions.Infrastructure;
 using Microsoft.AspNetCore.Authentication.JwtBearer;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Localization;
@@ -91,6 +92,8 @@ public static class ServiceCollectionExtensions
             AddFixedWindow(options, "pricing-read", 180, 60);
             AddFixedWindow(options, "pricing-write", 40, 60);
             AddFixedWindow(options, "pricing-calculate", 120, 60);
+            AddFixedWindow(options, "promotions-read", 120, 60);
+            AddFixedWindow(options, "promotions-write", 40, 60);
         });
 
         services.ConfigureHttpJsonOptions(options =>
@@ -122,6 +125,7 @@ public static class ServiceCollectionExtensions
         services.AddMediaInfrastructure(configuration);
         services.AddPricingApplication();
         services.AddPricingInfrastructure(configuration);
+        services.AddPromotionsInfrastructure(configuration);
 
         return services;
     }

@@ -1,0 +1,5 @@
+<Project Sdk="Microsoft.NET.Sdk">
+  <ItemGroup>
+    <ProjectReference Include="..\..\Pricing\AlSsareea.Modules.Pricing.Contracts\AlSsareea.Modules.Pricing.Contracts.csproj" />
+  </ItemGroup>
+</Project>

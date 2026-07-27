@@ -42,6 +42,10 @@
     <ProjectReference Include="..\..\src\Modules\Pricing\AlSsareea.Modules.Pricing.Contracts\AlSsareea.Modules.Pricing.Contracts.csproj" />
     <ProjectReference Include="..\..\src\Modules\Pricing\AlSsareea.Modules.Pricing.Domain\AlSsareea.Modules.Pricing.Domain.csproj" />
     <ProjectReference Include="..\..\src\Modules\Pricing\AlSsareea.Modules.Pricing.Infrastructure\AlSsareea.Modules.Pricing.Infrastructure.csproj" />
+    <ProjectReference Include="..\..\src\Modules\Promotions\AlSsareea.Modules.Promotions.Application\AlSsareea.Modules.Promotions.Application.csproj" />
+    <ProjectReference Include="..\..\src\Modules\Promotions\AlSsareea.Modules.Promotions.Contracts\AlSsareea.Modules.Promotions.Contracts.csproj" />
+    <ProjectReference Include="..\..\src\Modules\Promotions\AlSsareea.Modules.Promotions.Domain\AlSsareea.Modules.Promotions.Domain.csproj" />
+    <ProjectReference Include="..\..\src\Modules\Promotions\AlSsareea.Modules.Promotions.Infrastructure\AlSsareea.Modules.Promotions.Infrastructure.csproj" />
   </ItemGroup>
   <ItemGroup>
     <Using Include="Xunit" />

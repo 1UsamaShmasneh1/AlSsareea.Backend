@@ -40,3 +40,16 @@ public sealed record CatalogPriceResponse(Guid ProductId, int ProductVersion, st
 public sealed record ProductSnapshot(Guid ProductId, int ProductVersion, Guid MerchantId, Guid CatalogId, string LocalizedProductName, long BasePriceMinor, string Currency, Guid? SelectedVariantId, string? SelectedVariantName, long VariantPriceAdjustmentMinor, IReadOnlyList<SnapshotOption> SelectedOptions, string? TaxCategoryReference, long TotalPriceMinor, DateTime CapturedAtUtc);
 public sealed record SnapshotOption(Guid OptionGroupId, string OptionGroupName, Guid OptionId, string OptionName, long PriceAdjustmentMinor);
 public interface IProductSnapshotProvider { Task<ProductSnapshot?> BuildAsync(Guid merchantId, Guid productId, Guid? variantId, IReadOnlyList<Guid> optionIds, string language, CancellationToken cancellationToken = default); }
+
+public interface ICatalogPromotionScopeProvider
+{
+    Task<bool> ProductsBelongToMerchantAsync(
+        Guid merchantId,
+        IReadOnlyCollection<Guid> productIds,
+        CancellationToken cancellationToken = default);
+
+    Task<bool> CategoriesBelongToMerchantAsync(
+        Guid merchantId,
+        IReadOnlyCollection<Guid> categoryIds,
+        CancellationToken cancellationToken = default);
+}

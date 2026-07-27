@@ -17,6 +17,10 @@ using AlSsareea.Modules.Merchants.Application;
 using AlSsareea.Modules.Merchants.Contracts;
 using AlSsareea.Modules.Merchants.Domain;
 using AlSsareea.Modules.Merchants.Infrastructure.Persistence;
+using AlSsareea.Modules.Promotions.Application;
+using AlSsareea.Modules.Promotions.Contracts;
+using AlSsareea.Modules.Promotions.Domain;
+using AlSsareea.Modules.Promotions.Infrastructure.Persistence;
 
 namespace AlSsareea.ArchitectureTests;
 
@@ -328,6 +332,7 @@ public sealed class DependencyRulesTests
             typeof(CustomersDbContext).Assembly,
             typeof(FakeMapsProvider).Assembly,
             typeof(MerchantsDbContext).Assembly,
+            typeof(PromotionsDbContext).Assembly,
         ];
         Type[] migrationTypes = SolutionAssemblies()
             .SelectMany(assembly => assembly.GetTypes())
@@ -336,6 +341,53 @@ public sealed class DependencyRulesTests
 
         Assert.NotEmpty(migrationTypes);
         Assert.All(migrationTypes, type => Assert.Contains(type.Assembly, infrastructure));
+    }
+
+    [Fact]
+    public void PromotionsLayersRespectDependencyDirectionAndModuleBoundaries()
+    {
+        AssertDoesNotReference(typeof(Promotion).Assembly, ".Application");
+        AssertDoesNotReference(typeof(Promotion).Assembly, ".Infrastructure");
+        AssertDoesNotReference(typeof(Promotion).Assembly, "Microsoft.EntityFrameworkCore");
+        AssertDoesNotReference(typeof(Promotion).Assembly, "Microsoft.AspNetCore");
+        AssertDoesNotReference(typeof(IPromotionsService).Assembly, ".Infrastructure");
+        AssertDoesNotReference(typeof(PromotionResponse).Assembly, ".Domain");
+        AssertDoesNotReference(typeof(PromotionResponse).Assembly, ".Infrastructure");
+        AssertDoesNotReference(typeof(PromotionsDbContext).Assembly, "AlSsareea.Modules.Identity.Infrastructure");
+        AssertDoesNotReference(typeof(PromotionsDbContext).Assembly, "AlSsareea.Modules.Customers.Infrastructure");
+        AssertDoesNotReference(typeof(PromotionsDbContext).Assembly, "AlSsareea.Modules.Merchants.Infrastructure");
+        AssertDoesNotReference(typeof(PromotionsDbContext).Assembly, "AlSsareea.Modules.Maps.Infrastructure");
+        AssertDoesNotReference(typeof(PromotionsDbContext).Assembly, "AlSsareea.Modules.Catalog.Infrastructure");
+        AssertDoesNotReference(typeof(PromotionsDbContext).Assembly, "AlSsareea.Modules.Pricing.Infrastructure");
+        AssertDoesNotReference(typeof(PromotionResponse).Assembly, "AlSsareea.Modules.Pricing.Infrastructure");
+        AssertDoesNotReference(typeof(PromotionResponse).Assembly, "AlSsareea.Modules.Pricing.Domain");
+        Assert.Contains(
+            typeof(PromotionResponse).Assembly.GetReferencedAssemblies(),
+            reference => reference.Name == "AlSsareea.Modules.Pricing.Contracts");
+    }
+
+    [Fact]
+    public void ApiDoesNotExposePromotionsDbContext()
+    {
+        Type contextType = typeof(PromotionsDbContext);
+        MethodInfo[] methods = typeof(Program).Assembly.GetTypes().SelectMany(type => type.GetMethods(
+            BindingFlags.Public | BindingFlags.NonPublic | BindingFlags.Static | BindingFlags.Instance)).ToArray();
+        Assert.DoesNotContain(methods, method => method.ReturnType == contextType || method.GetParameters().Any(parameter => parameter.ParameterType == contextType));
+    }
+
+    [Fact]
+    public void PromotionsHasNoCrossModuleEfNavigationOrGenericRepository()
+    {
+        Type[] domainTypes = typeof(Promotion).Assembly.GetTypes();
+        Assert.DoesNotContain(domainTypes.SelectMany(x => x.GetProperties()), property =>
+            property.PropertyType.Namespace?.StartsWith("AlSsareea.Modules.", StringComparison.Ordinal) == true &&
+            property.PropertyType.Namespace != typeof(Promotion).Namespace);
+        Assert.DoesNotContain(
+            typeof(IPromotionsService).Assembly.GetTypes().Concat(typeof(PromotionsDbContext).Assembly.GetTypes()),
+            type => type.Name.Contains("Repository", StringComparison.Ordinal) && type.IsGenericTypeDefinition);
+        Assert.DoesNotContain(
+            SolutionAssemblies().SelectMany(x => x.GetTypes()),
+            type => type.Name == "IMerchantAccessScope");
     }
 
     public static TheoryData<Assembly> FrameworkNeutralAssemblies => new()
@@ -354,6 +406,9 @@ public sealed class DependencyRulesTests
         typeof(Merchant).Assembly,
         typeof(IMerchantsService).Assembly,
         typeof(MerchantResponse).Assembly,
+        typeof(Promotion).Assembly,
+        typeof(IPromotionsService).Assembly,
+        typeof(PromotionResponse).Assembly,
     };
 
     private static void AssertDoesNotReference(Assembly assembly, string forbiddenName)
@@ -400,5 +455,9 @@ public sealed class DependencyRulesTests
         typeof(IMerchantsService).Assembly,
         typeof(MerchantResponse).Assembly,
         typeof(MerchantsDbContext).Assembly,
+        typeof(Promotion).Assembly,
+        typeof(IPromotionsService).Assembly,
+        typeof(PromotionResponse).Assembly,
+        typeof(PromotionsDbContext).Assembly,
     ];
 }

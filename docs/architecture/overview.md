@@ -35,3 +35,9 @@ effective-dated pricing policies, rule lifecycle, deterministic integer-minor-un
 calculation, and immutable calculation snapshots. It consumes merchant scope through
 Merchants Contracts, treats service-zone identifiers as scalar references, and owns the
 `pricing` schema without cross-schema foreign keys.
+
+Phase 9B adds the [Promotions module](promotions.md), which owns promotion definitions,
+coupon normalization, lifecycle, deterministic eligibility and conflict evaluation,
+funding attribution, stable snapshots, and append-only usage/audit records. It consumes
+Pricing breakdown contracts and validates merchant/catalog scope through public module
+contracts without accessing another module's storage.

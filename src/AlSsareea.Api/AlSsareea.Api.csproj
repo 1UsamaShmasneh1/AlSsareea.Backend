@@ -26,5 +26,8 @@
     <ProjectReference Include="..\Modules\Merchants\AlSsareea.Modules.Merchants.Application\AlSsareea.Modules.Merchants.Application.csproj" />
     <ProjectReference Include="..\Modules\Merchants\AlSsareea.Modules.Merchants.Contracts\AlSsareea.Modules.Merchants.Contracts.csproj" />
     <ProjectReference Include="..\Modules\Merchants\AlSsareea.Modules.Merchants.Infrastructure\AlSsareea.Modules.Merchants.Infrastructure.csproj" />
+    <ProjectReference Include="..\Modules\Promotions\AlSsareea.Modules.Promotions.Application\AlSsareea.Modules.Promotions.Application.csproj" />
+    <ProjectReference Include="..\Modules\Promotions\AlSsareea.Modules.Promotions.Contracts\AlSsareea.Modules.Promotions.Contracts.csproj" />
+    <ProjectReference Include="..\Modules\Promotions\AlSsareea.Modules.Promotions.Infrastructure\AlSsareea.Modules.Promotions.Infrastructure.csproj" />
   </ItemGroup>
 </Project>

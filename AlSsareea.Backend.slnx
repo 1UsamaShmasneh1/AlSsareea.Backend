@@ -50,6 +50,12 @@
     <Project Path="src/Modules/Media/AlSsareea.Modules.Media.Domain/AlSsareea.Modules.Media.Domain.csproj" />
     <Project Path="src/Modules/Media/AlSsareea.Modules.Media.Infrastructure/AlSsareea.Modules.Media.Infrastructure.csproj" />
   </Folder>
+  <Folder Name="/src/Modules/Promotions/">
+    <Project Path="src/Modules/Promotions/AlSsareea.Modules.Promotions.Application/AlSsareea.Modules.Promotions.Application.csproj" />
+    <Project Path="src/Modules/Promotions/AlSsareea.Modules.Promotions.Contracts/AlSsareea.Modules.Promotions.Contracts.csproj" />
+    <Project Path="src/Modules/Promotions/AlSsareea.Modules.Promotions.Domain/AlSsareea.Modules.Promotions.Domain.csproj" />
+    <Project Path="src/Modules/Promotions/AlSsareea.Modules.Promotions.Infrastructure/AlSsareea.Modules.Promotions.Infrastructure.csproj" />
+  </Folder>
   <Folder Name="/tests/">
     <Project Path="tests/AlSsareea.ArchitectureTests/AlSsareea.ArchitectureTests.csproj" />
     <Project Path="tests/AlSsareea.IntegrationTests/AlSsareea.IntegrationTests.csproj" />

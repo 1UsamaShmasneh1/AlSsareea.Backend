@@ -1,0 +1,19 @@
+<Project Sdk="Microsoft.NET.Sdk">
+  <ItemGroup>
+    <PackageReference Include="EFCore.NamingConventions" />
+    <PackageReference Include="Microsoft.EntityFrameworkCore" />
+    <PackageReference Include="Microsoft.EntityFrameworkCore.Design" PrivateAssets="all" IncludeAssets="runtime; build; native; contentfiles; analyzers; buildtransitive" />
+    <PackageReference Include="Microsoft.Extensions.Configuration.Abstractions" />
+    <PackageReference Include="Microsoft.Extensions.Diagnostics.HealthChecks.EntityFrameworkCore" />
+    <PackageReference Include="Microsoft.Extensions.DependencyInjection.Abstractions" />
+    <PackageReference Include="Npgsql.EntityFrameworkCore.PostgreSQL" />
+  </ItemGroup>
+  <ItemGroup>
+    <ProjectReference Include="..\..\..\BuildingBlocks\AlSsareea.BuildingBlocks.Application\AlSsareea.BuildingBlocks.Application.csproj" />
+    <ProjectReference Include="..\..\Catalog\AlSsareea.Modules.Catalog.Contracts\AlSsareea.Modules.Catalog.Contracts.csproj" />
+    <ProjectReference Include="..\..\Merchants\AlSsareea.Modules.Merchants.Contracts\AlSsareea.Modules.Merchants.Contracts.csproj" />
+    <ProjectReference Include="..\AlSsareea.Modules.Promotions.Application\AlSsareea.Modules.Promotions.Application.csproj" />
+    <ProjectReference Include="..\AlSsareea.Modules.Promotions.Contracts\AlSsareea.Modules.Promotions.Contracts.csproj" />
+    <ProjectReference Include="..\AlSsareea.Modules.Promotions.Domain\AlSsareea.Modules.Promotions.Domain.csproj" />
+  </ItemGroup>
+</Project>
