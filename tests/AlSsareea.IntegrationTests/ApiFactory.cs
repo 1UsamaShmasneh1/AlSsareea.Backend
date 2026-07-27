@@ -15,6 +15,7 @@ public sealed class ApiFactory(string connectionString, int loginPermitLimit = 1
         builder.UseSetting("ConnectionStrings:MerchantsDatabase", connectionString);
         builder.UseSetting("ConnectionStrings:CatalogDatabase", connectionString);
         builder.UseSetting("ConnectionStrings:MediaDatabase", connectionString);
+        builder.UseSetting("ConnectionStrings:PricingDatabase", connectionString);
         builder.UseSetting("Media:StorageRoot", "App_Data/media-integration-tests");
         builder.UseSetting("Authentication:Jwt:Issuer", "AlSsareea.Tests");
         builder.UseSetting("Authentication:Jwt:Audience", "AlSsareea.TestClients");
@@ -33,6 +34,7 @@ public sealed class ApiFactory(string connectionString, int loginPermitLimit = 1
                 ["ConnectionStrings:MerchantsDatabase"] = connectionString,
                 ["ConnectionStrings:CatalogDatabase"] = connectionString,
                 ["ConnectionStrings:MediaDatabase"] = connectionString,
+                ["ConnectionStrings:PricingDatabase"] = connectionString,
                 ["Media:StorageRoot"] = "App_Data/media-integration-tests",
                 ["Authentication:Jwt:Issuer"] = "AlSsareea.Tests",
                 ["Authentication:Jwt:Audience"] = "AlSsareea.TestClients",

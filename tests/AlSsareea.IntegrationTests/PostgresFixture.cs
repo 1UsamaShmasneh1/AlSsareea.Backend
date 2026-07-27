@@ -3,6 +3,7 @@ using AlSsareea.Modules.Customers.Infrastructure.Persistence;
 using AlSsareea.Modules.Identity.Infrastructure.Persistence;
 using AlSsareea.Modules.Media.Infrastructure.Persistence;
 using AlSsareea.Modules.Merchants.Infrastructure.Persistence;
+using AlSsareea.Modules.Pricing.Infrastructure.Persistence;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.DependencyInjection;
 using Testcontainers.PostgreSql;
@@ -37,6 +38,8 @@ public sealed class PostgresFixture : IAsyncLifetime
         await catalogDbContext.Database.MigrateAsync();
         MediaDbContext mediaDbContext = scope.ServiceProvider.GetRequiredService<MediaDbContext>();
         await mediaDbContext.Database.MigrateAsync();
+        PricingDbContext pricingDbContext = scope.ServiceProvider.GetRequiredService<PricingDbContext>();
+        await pricingDbContext.Database.MigrateAsync();
     }
 
     public async Task DisposeAsync()

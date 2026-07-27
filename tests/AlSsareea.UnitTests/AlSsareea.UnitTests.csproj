@@ -24,6 +24,8 @@
     <ProjectReference Include="..\..\src\Modules\Media\AlSsareea.Modules.Media.Application\AlSsareea.Modules.Media.Application.csproj" />
     <ProjectReference Include="..\..\src\Modules\Media\AlSsareea.Modules.Media.Domain\AlSsareea.Modules.Media.Domain.csproj" />
     <ProjectReference Include="..\..\src\Modules\Media\AlSsareea.Modules.Media.Infrastructure\AlSsareea.Modules.Media.Infrastructure.csproj" />
+    <ProjectReference Include="..\..\src\Modules\Pricing\AlSsareea.Modules.Pricing.Contracts\AlSsareea.Modules.Pricing.Contracts.csproj" />
+    <ProjectReference Include="..\..\src\Modules\Pricing\AlSsareea.Modules.Pricing.Domain\AlSsareea.Modules.Pricing.Domain.csproj" />
   </ItemGroup>
   <ItemGroup>
     <Using Include="Xunit" />

@@ -4,17 +4,19 @@ Backend foundation for **AlSsareea (عالسريع)**, a multilingual delivery p
 
 ## Status
 
-Phase 8 adds the Media module on top of the completed Identity, authentication,
+Phase 9A adds the Pricing module on top of the completed Identity, authentication,
 authorization, Customers, and Maps phases. The solution now includes merchant and branch
 lifecycles, scoped employees and ownership, relational schedules and overrides, PostGIS
 branch locations, Maps-owned service-area assignments, and merchant-owned localized
 catalogs and products, plus validated local image storage, variants, lifecycle management,
-and contract-based Catalog media references. See
+contract-based Catalog media references, and deterministic scoped pricing policies with
+integer-minor-unit calculations and immutable calculation snapshots. See
 [the Customers architecture](docs/architecture/customers.md) and
 [the Maps architecture](docs/architecture/maps.md), and
 [the Merchants architecture](docs/architecture/merchants.md), and
 [the Catalog module](docs/modules/catalog.md), and
-[the Media module](docs/modules/media.md).
+[the Media module](docs/modules/media.md), and
+[the Pricing module](docs/modules/pricing.md).
 
 ## Requirements
 
@@ -49,11 +51,11 @@ docker compose down
 
 ## Connection string
 
-Identity, Customers, Maps, Merchants, Catalog, and Media own separate contexts and migration histories while normally
+Identity, Customers, Maps, Merchants, Catalog, Media, and Pricing own separate contexts and migration histories while normally
 using the same PostgreSQL database. Configure `ConnectionStrings:IdentityDatabase`,
 `ConnectionStrings:CustomersDatabase`, `ConnectionStrings:MapsDatabase`,
 `ConnectionStrings:MerchantsDatabase`, `ConnectionStrings:CatalogDatabase`, and
-`ConnectionStrings:MediaDatabase`.
+`ConnectionStrings:MediaDatabase`, and `ConnectionStrings:PricingDatabase`.
 `appsettings.Development.json` contains local-only values matching Compose.
 
 ```powershell
@@ -61,6 +63,7 @@ dotnet user-secrets init --project src/AlSsareea.Api
 dotnet user-secrets set "ConnectionStrings:IdentityDatabase" "Host=localhost;Port=5432;Database=alssareea;Username=alssareea;Password=<development-password>" --project src/AlSsareea.Api
 dotnet user-secrets set "ConnectionStrings:CustomersDatabase" "Host=localhost;Port=5432;Database=alssareea;Username=alssareea;Password=<development-password>" --project src/AlSsareea.Api
 dotnet user-secrets set "ConnectionStrings:MapsDatabase" "Host=localhost;Port=5432;Database=alssareea;Username=alssareea;Password=<development-password>" --project src/AlSsareea.Api
+dotnet user-secrets set "ConnectionStrings:PricingDatabase" "Host=localhost;Port=5432;Database=alssareea;Username=alssareea;Password=<development-password>" --project src/AlSsareea.Api
 ```
 
 No production connection string is stored in the repository.
@@ -88,6 +91,7 @@ $customersProject = ".\src\Modules\Customers\AlSsareea.Modules.Customers.Infrast
 $mapsProject = ".\src\Modules\Maps\AlSsareea.Modules.Maps.Infrastructure\AlSsareea.Modules.Maps.Infrastructure.csproj"
 $catalogProject = ".\src\Modules\Catalog\AlSsareea.Modules.Catalog.Infrastructure\AlSsareea.Modules.Catalog.Infrastructure.csproj"
 $mediaProject = ".\src\Modules\Media\AlSsareea.Modules.Media.Infrastructure\AlSsareea.Modules.Media.Infrastructure.csproj"
+$pricingProject = ".\src\Modules\Pricing\AlSsareea.Modules.Pricing.Infrastructure\AlSsareea.Modules.Pricing.Infrastructure.csproj"
 
 dotnet ef migrations add <MigrationName> --project $identityProject --context IdentityDbContext --output-dir Persistence\Migrations
 dotnet ef database update --project $identityProject --context IdentityDbContext
@@ -102,6 +106,8 @@ dotnet ef database update --project $catalogProject --context CatalogDbContext
 dotnet ef migrations has-pending-model-changes --project $catalogProject --context CatalogDbContext
 dotnet ef database update --project $mediaProject --context MediaDbContext
 dotnet ef migrations has-pending-model-changes --project $mediaProject --context MediaDbContext
+dotnet ef database update --project $pricingProject --context PricingDbContext
+dotnet ef migrations has-pending-model-changes --project $pricingProject --context PricingDbContext
 ```
 
 Only remove a migration that has not been applied. Migrations are never applied automatically when the API starts.
@@ -152,6 +158,11 @@ dotnet dev-certs https --trust
 | `PUT` | `/api/v1/customers/me/addresses/{addressId}/default` | Select the owned default address |
 | `GET`, `PUT` | `/api/v1/customers/me/preferences` | Read or update owned preferences |
 | `GET`, `PUT` | `/api/v1/admin/customers...` | Permission-protected customer administration |
+| `POST` | `/api/v1/pricing/estimates` | Resolve a scoped pricing policy and return a deterministic breakdown and snapshot |
+| `GET`, `POST` | `/api/v1/pricing/policies` | Permission-protected pricing policy queries and creation |
+| `GET`, `PUT` | `/api/v1/pricing/policies/{policyId}` | Read or update a pricing policy |
+| `PUT` | `/api/v1/pricing/policies/{policyId}/rules` | Replace a draft policy's rules |
+| `POST` | `/api/v1/pricing/policies/{policyId}/{activate|deactivate|archive}` | Transition a pricing policy lifecycle |
 
 Future versioned business endpoints will use the `/api/v1` base path. The unversioned system endpoints are operational endpoints rather than business contracts.
 
@@ -163,6 +174,9 @@ Future versioned business endpoints will use the `/api/v1` base path. The unvers
 - `src/Modules/Customers`: Customer domain, stable HTTP contracts, application abstractions, and owned persistence.
 - `src/Modules/Maps`: Provider-neutral maps contracts, service areas, PostGIS persistence, and a deterministic fake provider.
 - `src/Modules/Merchants`: Merchant and branch lifecycles, schedules, service-area assignments, ownership, and merchant-scoped memberships.
+- `src/Modules/Catalog`: Merchant-owned localized catalogs, products, options, availability, and immutable product snapshots.
+- `src/Modules/Media`: Validated image lifecycle, local storage abstraction, variants, and media lookup contracts.
+- `src/Modules/Pricing`: Scoped pricing policy lifecycle, deterministic fee calculation, and calculation snapshots.
 - `tests`: unit, integration, and architecture tests.
 - `docs`: architecture notes and Architecture Decision Records.
 

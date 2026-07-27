@@ -29,3 +29,9 @@ Phase 8 adds the [Media module](../modules/media.md). Media owns image validatio
 local-provider storage, metadata, processing variants, ownership, access level, lifecycle,
 and cleanup. Catalog validates media references through `IMediaAssetLookup`; neither module
 reads the other's schema, and no cross-schema foreign key is created.
+
+Phase 9A adds the [Pricing module](../modules/pricing.md). Pricing owns scoped and
+effective-dated pricing policies, rule lifecycle, deterministic integer-minor-unit fee
+calculation, and immutable calculation snapshots. It consumes merchant scope through
+Merchants Contracts, treats service-zone identifiers as scalar references, and owns the
+`pricing` schema without cross-schema foreign keys.
