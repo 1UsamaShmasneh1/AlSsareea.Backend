@@ -32,6 +32,12 @@
     <Project Path="src/Modules/Merchants/AlSsareea.Modules.Merchants.Domain/AlSsareea.Modules.Merchants.Domain.csproj" />
     <Project Path="src/Modules/Merchants/AlSsareea.Modules.Merchants.Infrastructure/AlSsareea.Modules.Merchants.Infrastructure.csproj" />
   </Folder>
+  <Folder Name="/src/Modules/Pricing/">
+    <Project Path="src/Modules/Pricing/AlSsareea.Modules.Pricing.Application/AlSsareea.Modules.Pricing.Application.csproj" />
+    <Project Path="src/Modules/Pricing/AlSsareea.Modules.Pricing.Contracts/AlSsareea.Modules.Pricing.Contracts.csproj" />
+    <Project Path="src/Modules/Pricing/AlSsareea.Modules.Pricing.Domain/AlSsareea.Modules.Pricing.Domain.csproj" />
+    <Project Path="src/Modules/Pricing/AlSsareea.Modules.Pricing.Infrastructure/AlSsareea.Modules.Pricing.Infrastructure.csproj" />
+  </Folder>
   <Folder Name="/src/Modules/Catalog/">
     <Project Path="src/Modules/Catalog/AlSsareea.Modules.Catalog.Application/AlSsareea.Modules.Catalog.Application.csproj" />
     <Project Path="src/Modules/Catalog/AlSsareea.Modules.Catalog.Contracts/AlSsareea.Modules.Catalog.Contracts.csproj" />
