@@ -1,4 +1,5 @@
 using AlSsareea.Modules.Promotions.Application;
+using AlSsareea.Modules.Promotions.Contracts;
 using AlSsareea.Modules.Promotions.Infrastructure.Persistence;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Configuration;
@@ -22,7 +23,9 @@ public static class DependencyInjection
         services.AddHealthChecks().AddDbContextCheck<PromotionsDbContext>("promotions-postgresql", tags: ["ready"]);
         services.AddScoped<IPromotionRepository, PromotionRepository>();
         services.AddScoped<IPromotionScopeAuthorizer, PromotionScopeAuthorizer>();
-        services.AddScoped<IPromotionsService, PromotionsService>();
+        services.AddScoped<PromotionsService>();
+        services.AddScoped<IPromotionsService>(provider => provider.GetRequiredService<PromotionsService>());
+        services.AddScoped<ICartPromotionEvaluator>(provider => provider.GetRequiredService<PromotionsService>());
         return services;
     }
 }

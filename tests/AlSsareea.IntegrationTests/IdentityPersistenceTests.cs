@@ -97,7 +97,7 @@ public sealed class IdentityPersistenceTests(PostgresFixture fixture)
     {
         await using AsyncServiceScope scope = fixture.ApiFactory.Services.CreateAsyncScope(); IdentityDbContext db = scope.ServiceProvider.GetRequiredService<IdentityDbContext>();
         long cascades = await ScalarLongAsync(db, "SELECT count(*) FROM pg_constraint c JOIN pg_namespace n ON n.oid=c.connamespace WHERE n.nspname='identity' AND c.contype='f' AND c.confdeltype='c'"); Assert.Equal(0, cascades);
-        List<string> schemas = await QueryStringsAsync(db, "SELECT schema_name FROM information_schema.schemata WHERE schema_name NOT IN ('identity','customers','merchants','catalog','media','pricing','promotions','public','information_schema','pg_catalog','pg_toast','topology','tiger','tiger_data') AND schema_name NOT LIKE 'pg_temp_%' AND schema_name NOT LIKE 'pg_toast_temp_%'"); Assert.Empty(schemas);
+        List<string> schemas = await QueryStringsAsync(db, "SELECT schema_name FROM information_schema.schemata WHERE schema_name NOT IN ('identity','customers','merchants','catalog','media','pricing','promotions','carts','public','information_schema','pg_catalog','pg_toast','topology','tiger','tiger_data') AND schema_name NOT LIKE 'pg_temp_%' AND schema_name NOT LIKE 'pg_toast_temp_%'"); Assert.Empty(schemas);
     }
 
     private static User NewUser(Email? email = null, PhoneNumber? phone = null) { UserId id = UserId.New(); return User.Create(id, UserType.Customer, email ?? new Email($"person-{id.Value:N}@example.com"), phone, new PasswordHash("argon2id$v=19$integration-test-hash"), Now); }

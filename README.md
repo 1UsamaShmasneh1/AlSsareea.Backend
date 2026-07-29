@@ -192,6 +192,7 @@ Future versioned business endpoints will use the `/api/v1` base path. The unvers
 - `src/Modules/Media`: Validated image lifecycle, local storage abstraction, variants, and media lookup contracts.
 - `src/Modules/Pricing`: Scoped pricing policy lifecycle, deterministic fee calculation, and calculation snapshots.
 - `src/Modules/Promotions`: Promotion lifecycle, coupons, eligibility, evaluation, funding attribution, and owned persistence.
+- `src/Modules/Carts`: Customer cart lifecycle, configured lines, idempotent mutations, expiration, and authoritative checkout summaries.
 - `tests`: unit, integration, and architecture tests.
 - `docs`: architecture notes and Architecture Decision Records.
 

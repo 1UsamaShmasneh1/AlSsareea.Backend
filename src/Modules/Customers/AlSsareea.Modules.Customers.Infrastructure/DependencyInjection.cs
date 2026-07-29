@@ -1,4 +1,5 @@
 using AlSsareea.Modules.Customers.Application;
+using AlSsareea.Modules.Customers.Contracts;
 using AlSsareea.Modules.Customers.Infrastructure.Persistence;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Configuration;
@@ -26,7 +27,9 @@ public static class DependencyInjection
             .UseSnakeCaseNamingConvention());
         services.AddHealthChecks().AddDbContextCheck<CustomersDbContext>("customers-postgresql", tags: ["ready"]);
         services.AddScoped<ICustomerRepository, CustomerRepository>();
-        services.AddScoped<ICustomersService, CustomersService>();
+        services.AddScoped<CustomersService>();
+        services.AddScoped<ICustomersService>(provider => provider.GetRequiredService<CustomersService>());
+        services.AddScoped<ICartCustomerContextProvider>(provider => provider.GetRequiredService<CustomersService>());
         return services;
     }
 }

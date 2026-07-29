@@ -1,5 +1,11 @@
 namespace AlSsareea.Modules.Customers.Contracts;
 
+public sealed record CartCustomerContext(Guid CustomerId, bool IsAllowed);
+public interface ICartCustomerContextProvider
+{
+    Task<CartCustomerContext?> GetByUserIdAsync(Guid userId, CancellationToken cancellationToken = default);
+}
+
 public sealed record CreateCustomerRequest(string FirstName, string LastName, DateOnly? DateOfBirth);
 public sealed record UpdateCustomerRequest(string FirstName, string LastName, DateOnly? DateOfBirth, Guid ConcurrencyStamp);
 public sealed record ChangeCustomerStatusRequest(short Status, string? Reason, Guid ConcurrencyStamp);
