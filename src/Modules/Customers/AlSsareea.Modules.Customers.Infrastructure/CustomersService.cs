@@ -13,9 +13,15 @@ internal sealed class CustomersService(
     CustomersDbContext db,
     ICustomerRepository repository,
     IClock clock,
-    IOptions<CustomersOptions> options) : ICustomersService
+    IOptions<CustomersOptions> options) : ICustomersService, ICartCustomerContextProvider
 {
     private CustomersOptions Options => options.Value;
+
+    public async Task<CartCustomerContext?> GetByUserIdAsync(Guid userId, CancellationToken cancellationToken = default)
+    {
+        Customer? customer = await repository.GetByUserIdAsync(userId, true, cancellationToken);
+        return customer is null ? null : new CartCustomerContext(customer.Id.Value, customer.Status == CustomerStatus.Active);
+    }
 
     public async Task<CustomerOperationResult<CustomerResponse>> CreateCurrentAsync(Guid userId, CreateCustomerRequest request, CancellationToken cancellationToken)
     {

@@ -10,8 +10,16 @@ using Microsoft.EntityFrameworkCore;
 
 namespace AlSsareea.Modules.Catalog.Infrastructure;
 
-internal sealed class CatalogService(CatalogDbContext db, ICatalogRepository catalogs, IProductRepository products, IMerchantCatalogScopeProvider merchants, IMediaAssetLookup media, IClock clock) : ICatalogService, IProductSnapshotProvider
+internal sealed class CatalogService(CatalogDbContext db, ICatalogRepository catalogs, IProductRepository products, IMerchantCatalogScopeProvider merchants, IMediaAssetLookup media, IClock clock) : ICatalogService, IProductSnapshotProvider, ICartCatalogValidationService
 {
+    public async Task<CartCatalogValidationResult> ValidateAsync(CartCatalogValidationRequest request, CancellationToken cancellationToken = default)
+    {
+        if (request.Quantity < 1) return new(false, false, "carts.invalid_quantity", null);
+        ProductSnapshot? snapshot = await BuildAsync(request.MerchantId, request.ProductId, request.VariantId, request.Options.Select(x => x.OptionItemId).ToArray(), request.Language, cancellationToken);
+        if (snapshot is null) return new(false, false, "carts.product_unavailable", null);
+        bool changed = request.KnownProductVersion.HasValue && request.KnownProductVersion.Value != snapshot.ProductVersion;
+        return new(true, changed, changed ? "carts.product_changed" : null, snapshot);
+    }
     public async Task<CatalogOperationResult<CatalogResponse>> CreateCatalogAsync(Guid merchantId, CreateCatalogRequest r, CatalogActor actor, CancellationToken ct) => await Run(async () =>
     {
         if (!await CanManage(merchantId, actor, ct)) return Forbidden<CatalogResponse>();

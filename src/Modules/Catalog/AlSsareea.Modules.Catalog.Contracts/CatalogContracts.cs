@@ -41,6 +41,14 @@ public sealed record ProductSnapshot(Guid ProductId, int ProductVersion, Guid Me
 public sealed record SnapshotOption(Guid OptionGroupId, string OptionGroupName, Guid OptionId, string OptionName, long PriceAdjustmentMinor);
 public interface IProductSnapshotProvider { Task<ProductSnapshot?> BuildAsync(Guid merchantId, Guid productId, Guid? variantId, IReadOnlyList<Guid> optionIds, string language, CancellationToken cancellationToken = default); }
 
+public sealed record CartCatalogOptionReference(Guid OptionGroupId, Guid OptionItemId, int Quantity);
+public sealed record CartCatalogValidationRequest(Guid MerchantId, Guid? BranchId, Guid ProductId, Guid? VariantId, IReadOnlyList<CartCatalogOptionReference> Options, int Quantity, int? KnownProductVersion, string Language);
+public sealed record CartCatalogValidationResult(bool IsValid, bool HasChanged, string? BlockingReasonCode, ProductSnapshot? Snapshot);
+public interface ICartCatalogValidationService
+{
+    Task<CartCatalogValidationResult> ValidateAsync(CartCatalogValidationRequest request, CancellationToken cancellationToken = default);
+}
+
 public interface ICatalogPromotionScopeProvider
 {
     Task<bool> ProductsBelongToMerchantAsync(

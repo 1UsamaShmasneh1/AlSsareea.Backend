@@ -110,6 +110,12 @@ public sealed record PromotionEvaluationResponse(
     IReadOnlyList<PromotionDecision> Decisions,
     IReadOnlyList<PromotionEvaluationSnapshot> Snapshots);
 
+public interface ICartPromotionEvaluator
+{
+    Task<PromotionEvaluationResponse?> EvaluateCartAsync(EvaluatePromotionsRequest request, CancellationToken cancellationToken = default);
+    Task<CouponValidationResponse?> ValidateCartCouponAsync(ValidateCouponRequest request, CancellationToken cancellationToken = default);
+}
+
 public sealed record ValidateCouponRequest(
     string CouponCode,
     Guid? CustomerId,
