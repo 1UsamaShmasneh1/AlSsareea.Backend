@@ -5,6 +5,7 @@
   </PropertyGroup>
   <ItemGroup>
     <ProjectReference Include="..\..\src\Modules\Carts\AlSsareea.Modules.Carts.Domain\AlSsareea.Modules.Carts.Domain.csproj" />
+    <ProjectReference Include="..\..\src\Modules\Orders\AlSsareea.Modules.Orders.Domain\AlSsareea.Modules.Orders.Domain.csproj" />
     <PackageReference Include="coverlet.collector" PrivateAssets="all" />
     <PackageReference Include="Microsoft.NET.Test.Sdk" />
     <PackageReference Include="Microsoft.Extensions.Options" />

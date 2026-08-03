@@ -17,6 +17,7 @@ public static class EndpointRouteBuilderExtensions
         app.MapPricingEndpoints();
         app.MapPromotionEndpoints();
         app.MapCartEndpoints();
+        app.MapOrderEndpoints();
         app.MapHealthChecks("/health").WithTags("System");
         app.MapHealthChecks("/health/live", new HealthCheckOptions
         {

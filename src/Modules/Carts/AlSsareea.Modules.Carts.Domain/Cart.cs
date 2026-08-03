@@ -48,7 +48,13 @@ public sealed class Cart : AggregateRoot<CartId>
     public void ApplyCoupon(string code, DateTime now) { EnsureActive(now); string value = code.Trim().ToUpperInvariant(); if (value.Length is 0 or > CartRules.MaximumCouponLength) throw new DomainException("Coupon code is invalid."); CouponCode = value; Touch(now); }
     public void RemoveCoupon(DateTime now) { EnsureActive(now); CouponCode = null; Touch(now); }
     public void Clear(DateTime now) { EnsureActive(now); Status = CartStatus.Cleared; CouponCode = null; Touch(now); RaiseDomainEvent(new CartClearedDomainEvent(Id.Value, now)); }
-    public void MarkPriced(DateTime now) { EnsureActive(now); LastPricedAtUtc = now; Touch(now); }
+    public void MarkPriced(DateTime now) { EnsureActive(now); RequireUtc(now); LastPricedAtUtc = now; UpdatedAtUtc = now; }
+    public void MarkConverted(Guid orderId, DateTime now)
+    {
+        RequireUtc(now); if (orderId == Guid.Empty) throw new DomainException("Order identifier is required.");
+        if (Status == CartStatus.Converted) return;
+        EnsureActive(now); Status = CartStatus.Converted; Touch(now); RaiseDomainEvent(new CartConvertedDomainEvent(Id.Value, orderId, now));
+    }
     private CartItem Find(CartItemId id) => _items.SingleOrDefault(x => x.Id == id) ?? throw new DomainException("Cart item was not found.");
     private void EnsureActive(DateTime now) { ExpireIfNeeded(now); if (Status != CartStatus.Active) throw new DomainException(Status == CartStatus.Expired ? "Cart has expired." : "Cart is not active."); }
     private void Touch(DateTime now) { RequireUtc(now); UpdatedAtUtc = now; ConcurrencyStamp = Guid.NewGuid(); }

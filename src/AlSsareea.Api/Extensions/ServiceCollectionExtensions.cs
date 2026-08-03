@@ -19,6 +19,7 @@ using AlSsareea.Modules.Maps.Infrastructure;
 using AlSsareea.Modules.Media.Infrastructure;
 using AlSsareea.Modules.Merchants.Application;
 using AlSsareea.Modules.Merchants.Infrastructure;
+using AlSsareea.Modules.Orders.Infrastructure;
 using AlSsareea.Modules.Pricing.Application;
 using AlSsareea.Modules.Pricing.Infrastructure;
 using AlSsareea.Modules.Promotions.Infrastructure;
@@ -129,6 +130,7 @@ public static class ServiceCollectionExtensions
         services.AddPricingInfrastructure(configuration);
         services.AddPromotionsInfrastructure(configuration);
         services.AddCartsInfrastructure(configuration);
+        services.AddOrdersInfrastructure(configuration);
 
         return services;
     }

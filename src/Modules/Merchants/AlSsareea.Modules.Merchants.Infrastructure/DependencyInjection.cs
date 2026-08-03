@@ -24,6 +24,7 @@ public static class DependencyInjection
         services.AddScoped<IMerchantBranchRepository, MerchantBranchRepository>();
         services.AddScoped<IMerchantEmployeeRepository, MerchantEmployeeRepository>();
         services.AddScoped<IMerchantsService, MerchantsService>();
+        services.AddScoped<IOrderMerchantSnapshotProvider, OrderMerchantSnapshotProvider>();
         services.AddScoped<IMerchantCatalogScopeProvider, MerchantCatalogScopeProvider>();
         return services;
     }

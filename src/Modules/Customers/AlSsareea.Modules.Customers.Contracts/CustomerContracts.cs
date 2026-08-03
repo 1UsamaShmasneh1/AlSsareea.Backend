@@ -5,6 +5,13 @@ public interface ICartCustomerContextProvider
 {
     Task<CartCustomerContext?> GetByUserIdAsync(Guid userId, CancellationToken cancellationToken = default);
 }
+public sealed record OrderAddressSnapshotContract(Guid AddressId, string Label, string City, string? Area, string Street, string? BuildingNumber, string? Floor, string? Apartment, string? DeliveryInstructions, double? Latitude, double? Longitude, string? PlaceId, string FormattedAddress);
+public sealed record OrderCustomerSnapshotContract(Guid CustomerId, string DisplayName, string? PhoneNumber, string PreferredLanguage, OrderAddressSnapshotContract Address);
+public interface IOrderCustomerSnapshotProvider
+{
+    Task<Guid?> GetCustomerIdAsync(Guid userId, CancellationToken cancellationToken = default);
+    Task<OrderCustomerSnapshotContract?> GetAsync(Guid userId, Guid addressId, CancellationToken cancellationToken = default);
+}
 
 public sealed record CreateCustomerRequest(string FirstName, string LastName, DateOnly? DateOfBirth);
 public sealed record UpdateCustomerRequest(string FirstName, string LastName, DateOnly? DateOfBirth, Guid ConcurrencyStamp);

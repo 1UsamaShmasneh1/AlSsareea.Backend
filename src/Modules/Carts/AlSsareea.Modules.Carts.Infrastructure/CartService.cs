@@ -102,7 +102,9 @@ internal sealed class CartService(
             if (!validation.IsValid || snapshot is null) reasons.Add(new(validation.BlockingReasonCode ?? CartErrorCodes.ProductUnavailable, "Product configuration is unavailable."));
             if (snapshot is not null && currency is not null && currency != snapshot.Currency) reasons.Add(new(CartErrorCodes.CurrencyMismatch, "Cart items use inconsistent currencies."));
             currency ??= snapshot?.Currency; long unit = snapshot?.TotalPriceMinor ?? 0; long lineSubtotal = checked(unit * item.Quantity); subtotal = checked(subtotal + lineSubtotal);
-            lines.Add(new(item.Id.Value, item.ProductId, snapshot?.LocalizedProductName, item.ProductVariantId, snapshot?.SelectedVariantName, item.Quantity, unit, lineSubtotal, 0, lineSubtotal, validation.IsValid, validation.HasChanged, reasons));
+            long optionsTotal = snapshot?.SelectedOptions.Sum(x => x.PriceAdjustmentMinor) ?? 0;
+            CartCheckoutOptionResponse[] optionSnapshots = snapshot?.SelectedOptions.Select(x => new CartCheckoutOptionResponse(x.OptionGroupId, x.OptionId, x.OptionGroupName, x.OptionName, item.SelectedOptions.SingleOrDefault(o => o.OptionItemId == x.OptionId)?.Quantity ?? 1, x.PriceAdjustmentMinor, checked(x.PriceAdjustmentMinor * (item.SelectedOptions.SingleOrDefault(o => o.OptionItemId == x.OptionId)?.Quantity ?? 1)))).ToArray() ?? [];
+            lines.Add(new(item.Id.Value, item.ProductId, snapshot?.ProductVersion ?? item.CatalogVersion, snapshot?.LocalizedProductName, snapshot?.Sku, item.ProductVariantId, snapshot?.SelectedVariantName, item.Quantity, snapshot is null ? 0 : snapshot.BasePriceMinor + snapshot.VariantPriceAdjustmentMinor, optionsTotal, unit, lineSubtotal, 0, lineSubtotal, item.CustomerNote, validation.IsValid, validation.HasChanged, optionSnapshots, reasons));
             blocking.AddRange(reasons);
         }
         if (cart.Items.Count == 0) blocking.Add(new(CartErrorCodes.Empty, "Cart is empty."));

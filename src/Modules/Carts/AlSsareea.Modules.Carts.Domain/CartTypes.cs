@@ -18,3 +18,4 @@ public static class CartRules
 public sealed record CartCreatedDomainEvent(Guid CartId, DateTime OccurredAtUtc) : IDomainEvent;
 public sealed record CartExpiredDomainEvent(Guid CartId, DateTime OccurredAtUtc) : IDomainEvent;
 public sealed record CartClearedDomainEvent(Guid CartId, DateTime OccurredAtUtc) : IDomainEvent;
+public sealed record CartConvertedDomainEvent(Guid CartId, Guid OrderId, DateTime OccurredAtUtc) : IDomainEvent;

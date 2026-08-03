@@ -30,6 +30,7 @@ public static class DependencyInjection
         services.AddScoped<CustomersService>();
         services.AddScoped<ICustomersService>(provider => provider.GetRequiredService<CustomersService>());
         services.AddScoped<ICartCustomerContextProvider>(provider => provider.GetRequiredService<CustomersService>());
+        services.AddScoped<IOrderCustomerSnapshotProvider, OrderCustomerSnapshotProvider>();
         return services;
     }
 }
