@@ -52,4 +52,3 @@ internal sealed class CartIdempotencyConfiguration : IEntityTypeConfiguration<Ca
         b.HasIndex(x => x.ExpiresAtUtc);
     }
 }
-

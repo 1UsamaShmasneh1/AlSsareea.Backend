@@ -13,4 +13,3 @@ public sealed class CartsDbContext(DbContextOptions<CartsDbContext> options) : D
     protected override void OnModelCreating(ModelBuilder modelBuilder) { modelBuilder.HasDefaultSchema(CartsPersistence.Schema); modelBuilder.ApplyConfigurationsFromAssembly(typeof(CartsDbContext).Assembly); }
 }
 internal static class CartsPersistence { internal const string Schema = "carts"; internal const string MigrationsHistoryTable = "__ef_migrations_history"; }
-

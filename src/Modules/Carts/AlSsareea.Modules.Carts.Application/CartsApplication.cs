@@ -45,4 +45,3 @@ public interface ICartService
     Task<CartOperationResult<CartResponse>> ClearAsync(Guid userId, Guid cartId, CartConcurrencyRequest request, string idempotencyKey, CancellationToken cancellationToken);
     Task<CartOperationResult<CartCheckoutSummaryResponse>> CheckoutSummaryAsync(Guid userId, Guid cartId, CancellationToken cancellationToken);
 }
-

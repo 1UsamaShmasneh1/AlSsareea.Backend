@@ -15,4 +15,3 @@ internal sealed class CartRepository(CartsDbContext db) : ICartRepository
         Query().SingleOrDefaultAsync(x => x.CustomerId == customerId && x.MerchantId == merchantId && x.BranchId == branchId && x.Status == CartStatus.Active, cancellationToken);
     public Task AddAsync(Cart cart, CancellationToken cancellationToken) => db.Carts.AddAsync(cart, cancellationToken).AsTask();
 }
-

@@ -50,4 +50,3 @@ internal static class CartEndpoints
         return Results.Problem(statusCode: status, title: "Cart operation failed.", extensions: new Dictionary<string, object?> { ["code"] = result.ErrorCode });
     }
 }
-

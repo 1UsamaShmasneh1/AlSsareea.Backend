@@ -163,4 +163,3 @@ public partial class AddCartsModule : Migration
             schema: "carts");
     }
 }
-

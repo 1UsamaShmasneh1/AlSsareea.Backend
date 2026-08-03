@@ -59,4 +59,3 @@ public sealed class CartDomainTests
     }
     private static Cart Create() => Cart.Create(CartId.New(), Guid.NewGuid(), Guid.NewGuid(), null, Now, TimeSpan.FromDays(30));
 }
-

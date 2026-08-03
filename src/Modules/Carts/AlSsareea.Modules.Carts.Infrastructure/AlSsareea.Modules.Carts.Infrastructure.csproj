@@ -20,4 +20,3 @@
     <ProjectReference Include="..\..\Promotions\AlSsareea.Modules.Promotions.Contracts\AlSsareea.Modules.Promotions.Contracts.csproj" />
   </ItemGroup>
 </Project>
-

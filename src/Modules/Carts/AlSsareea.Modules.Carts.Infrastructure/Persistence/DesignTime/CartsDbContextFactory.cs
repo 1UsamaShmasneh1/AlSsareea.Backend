@@ -13,4 +13,3 @@ public sealed class CartsDbContextFactory : IDesignTimeDbContextFactory<CartsDbC
         return new CartsDbContext(builder.Options);
     }
 }
-

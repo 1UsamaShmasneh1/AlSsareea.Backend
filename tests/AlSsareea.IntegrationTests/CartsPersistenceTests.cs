@@ -16,4 +16,3 @@ public sealed class CartsPersistenceTests(PostgresFixture fixture)
         Assert.Contains("carts", tables); Assert.Contains("cart_items", tables); Assert.Contains("cart_item_options", tables); Assert.Contains("cart_idempotency_records", tables);
     }
 }
-

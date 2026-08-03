@@ -255,4 +255,3 @@ namespace AlSsareea.Modules.Carts.Infrastructure.Persistence.Migrations
         }
     }
 }
-

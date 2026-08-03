@@ -25,4 +25,3 @@ public sealed class CartsDependencyRulesTests
         Assert.All(references, x => Assert.Equal(own, x));
     }
 }
-

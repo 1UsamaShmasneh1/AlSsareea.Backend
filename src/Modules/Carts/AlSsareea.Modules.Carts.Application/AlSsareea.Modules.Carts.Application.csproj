@@ -5,4 +5,3 @@
     <ProjectReference Include="..\..\..\BuildingBlocks\AlSsareea.BuildingBlocks.Application\AlSsareea.BuildingBlocks.Application.csproj" />
   </ItemGroup>
 </Project>
-
