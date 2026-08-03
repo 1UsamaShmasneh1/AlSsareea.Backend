@@ -13,8 +13,19 @@ internal sealed class PromotionsService(
     PromotionsDbContext db,
     IPromotionRepository repository,
     IPromotionScopeAuthorizer scopeAuthorizer,
-    IClock clock) : IPromotionsService
+    IClock clock) : IPromotionsService, ICartPromotionEvaluator
 {
+    public async Task<PromotionEvaluationResponse?> EvaluateCartAsync(EvaluatePromotionsRequest request, CancellationToken cancellationToken = default)
+    {
+        PromotionOperationResult<PromotionEvaluationResponse> result = await EvaluateAsync(request, new PromotionActor(Guid.Empty, true, new HashSet<Guid>()), cancellationToken);
+        return result.Value;
+    }
+
+    public async Task<CouponValidationResponse?> ValidateCartCouponAsync(ValidateCouponRequest request, CancellationToken cancellationToken = default)
+    {
+        PromotionOperationResult<CouponValidationResponse> result = await ValidateCouponAsync(request, new PromotionActor(Guid.Empty, true, new HashSet<Guid>()), cancellationToken);
+        return result.Value;
+    }
     public async Task<PromotionOperationResult<PromotionResponse>> CreateAsync(CreatePromotionRequest request, PromotionActor actor, CancellationToken ct)
     {
         try

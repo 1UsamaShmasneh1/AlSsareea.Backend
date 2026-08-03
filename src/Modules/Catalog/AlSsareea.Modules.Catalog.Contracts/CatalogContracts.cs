@@ -37,9 +37,17 @@ public sealed record ProductResponse(Guid Id, Guid CatalogId, Guid MerchantId, G
 public sealed record ProductListResponse(IReadOnlyList<ProductResponse> Items, int Page, int PageSize, int TotalCount);
 public sealed record SelectedPriceItem(Guid Id, string Name, long AdjustmentMinor);
 public sealed record CatalogPriceResponse(Guid ProductId, int ProductVersion, string Currency, long BasePriceMinor, long VariantAdjustmentMinor, long OptionsAdjustmentMinor, long TotalPriceMinor, SelectedPriceItem? SelectedVariant, IReadOnlyList<SelectedPriceItem> SelectedOptions);
-public sealed record ProductSnapshot(Guid ProductId, int ProductVersion, Guid MerchantId, Guid CatalogId, string LocalizedProductName, long BasePriceMinor, string Currency, Guid? SelectedVariantId, string? SelectedVariantName, long VariantPriceAdjustmentMinor, IReadOnlyList<SnapshotOption> SelectedOptions, string? TaxCategoryReference, long TotalPriceMinor, DateTime CapturedAtUtc);
+public sealed record ProductSnapshot(Guid ProductId, int ProductVersion, Guid MerchantId, Guid CatalogId, string LocalizedProductName, string? Sku, long BasePriceMinor, string Currency, Guid? SelectedVariantId, string? SelectedVariantName, long VariantPriceAdjustmentMinor, IReadOnlyList<SnapshotOption> SelectedOptions, string? TaxCategoryReference, long TotalPriceMinor, DateTime CapturedAtUtc);
 public sealed record SnapshotOption(Guid OptionGroupId, string OptionGroupName, Guid OptionId, string OptionName, long PriceAdjustmentMinor);
 public interface IProductSnapshotProvider { Task<ProductSnapshot?> BuildAsync(Guid merchantId, Guid productId, Guid? variantId, IReadOnlyList<Guid> optionIds, string language, CancellationToken cancellationToken = default); }
+
+public sealed record CartCatalogOptionReference(Guid OptionGroupId, Guid OptionItemId, int Quantity);
+public sealed record CartCatalogValidationRequest(Guid MerchantId, Guid? BranchId, Guid ProductId, Guid? VariantId, IReadOnlyList<CartCatalogOptionReference> Options, int Quantity, int? KnownProductVersion, string Language);
+public sealed record CartCatalogValidationResult(bool IsValid, bool HasChanged, string? BlockingReasonCode, ProductSnapshot? Snapshot);
+public interface ICartCatalogValidationService
+{
+    Task<CartCatalogValidationResult> ValidateAsync(CartCatalogValidationRequest request, CancellationToken cancellationToken = default);
+}
 
 public interface ICatalogPromotionScopeProvider
 {

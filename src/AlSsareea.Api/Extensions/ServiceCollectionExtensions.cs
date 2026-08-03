@@ -7,6 +7,7 @@ using AlSsareea.Api.Security;
 using AlSsareea.Api.Serialization;
 using AlSsareea.BuildingBlocks.Application.Localization;
 using AlSsareea.BuildingBlocks.Infrastructure;
+using AlSsareea.Modules.Carts.Infrastructure;
 using AlSsareea.Modules.Catalog.Application;
 using AlSsareea.Modules.Catalog.Infrastructure;
 using AlSsareea.Modules.Customers.Application;
@@ -18,6 +19,7 @@ using AlSsareea.Modules.Maps.Infrastructure;
 using AlSsareea.Modules.Media.Infrastructure;
 using AlSsareea.Modules.Merchants.Application;
 using AlSsareea.Modules.Merchants.Infrastructure;
+using AlSsareea.Modules.Orders.Infrastructure;
 using AlSsareea.Modules.Pricing.Application;
 using AlSsareea.Modules.Pricing.Infrastructure;
 using AlSsareea.Modules.Promotions.Infrastructure;
@@ -94,6 +96,7 @@ public static class ServiceCollectionExtensions
             AddFixedWindow(options, "pricing-calculate", 120, 60);
             AddFixedWindow(options, "promotions-read", 120, 60);
             AddFixedWindow(options, "promotions-write", 40, 60);
+            AddFixedWindow(options, "carts-write", 60, 60);
         });
 
         services.ConfigureHttpJsonOptions(options =>
@@ -126,6 +129,8 @@ public static class ServiceCollectionExtensions
         services.AddPricingApplication();
         services.AddPricingInfrastructure(configuration);
         services.AddPromotionsInfrastructure(configuration);
+        services.AddCartsInfrastructure(configuration);
+        services.AddOrdersInfrastructure(configuration);
 
         return services;
     }

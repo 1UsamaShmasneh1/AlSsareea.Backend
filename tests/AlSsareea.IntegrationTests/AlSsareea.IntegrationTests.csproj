@@ -4,6 +4,11 @@
     <IsTestProject>true</IsTestProject>
   </PropertyGroup>
   <ItemGroup>
+    <ProjectReference Include="..\..\src\Modules\Carts\AlSsareea.Modules.Carts.Infrastructure\AlSsareea.Modules.Carts.Infrastructure.csproj" />
+    <ProjectReference Include="..\..\src\Modules\Orders\AlSsareea.Modules.Orders.Application\AlSsareea.Modules.Orders.Application.csproj" />
+    <ProjectReference Include="..\..\src\Modules\Orders\AlSsareea.Modules.Orders.Contracts\AlSsareea.Modules.Orders.Contracts.csproj" />
+    <ProjectReference Include="..\..\src\Modules\Orders\AlSsareea.Modules.Orders.Domain\AlSsareea.Modules.Orders.Domain.csproj" />
+    <ProjectReference Include="..\..\src\Modules\Orders\AlSsareea.Modules.Orders.Infrastructure\AlSsareea.Modules.Orders.Infrastructure.csproj" />
     <PackageReference Include="coverlet.collector" PrivateAssets="all" />
     <PackageReference Include="Microsoft.AspNetCore.Mvc.Testing" />
     <PackageReference Include="Microsoft.NET.Test.Sdk" />

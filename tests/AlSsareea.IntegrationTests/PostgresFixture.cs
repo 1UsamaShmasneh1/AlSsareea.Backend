@@ -1,8 +1,10 @@
+using AlSsareea.Modules.Carts.Infrastructure.Persistence;
 using AlSsareea.Modules.Catalog.Infrastructure.Persistence;
 using AlSsareea.Modules.Customers.Infrastructure.Persistence;
 using AlSsareea.Modules.Identity.Infrastructure.Persistence;
 using AlSsareea.Modules.Media.Infrastructure.Persistence;
 using AlSsareea.Modules.Merchants.Infrastructure.Persistence;
+using AlSsareea.Modules.Orders.Infrastructure.Persistence;
 using AlSsareea.Modules.Pricing.Infrastructure.Persistence;
 using AlSsareea.Modules.Promotions.Infrastructure.Persistence;
 using Microsoft.EntityFrameworkCore;
@@ -43,6 +45,10 @@ public sealed class PostgresFixture : IAsyncLifetime
         await pricingDbContext.Database.MigrateAsync();
         PromotionsDbContext promotionsDbContext = scope.ServiceProvider.GetRequiredService<PromotionsDbContext>();
         await promotionsDbContext.Database.MigrateAsync();
+        CartsDbContext cartsDbContext = scope.ServiceProvider.GetRequiredService<CartsDbContext>();
+        await cartsDbContext.Database.MigrateAsync();
+        OrdersDbContext ordersDbContext = scope.ServiceProvider.GetRequiredService<OrdersDbContext>();
+        await ordersDbContext.Database.MigrateAsync();
     }
 
     public async Task DisposeAsync()

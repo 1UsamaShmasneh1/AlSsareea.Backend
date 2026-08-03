@@ -4,6 +4,14 @@
     <IsTestProject>true</IsTestProject>
   </PropertyGroup>
   <ItemGroup>
+    <ProjectReference Include="..\..\src\Modules\Carts\AlSsareea.Modules.Carts.Application\AlSsareea.Modules.Carts.Application.csproj" />
+    <ProjectReference Include="..\..\src\Modules\Carts\AlSsareea.Modules.Carts.Contracts\AlSsareea.Modules.Carts.Contracts.csproj" />
+    <ProjectReference Include="..\..\src\Modules\Carts\AlSsareea.Modules.Carts.Domain\AlSsareea.Modules.Carts.Domain.csproj" />
+    <ProjectReference Include="..\..\src\Modules\Carts\AlSsareea.Modules.Carts.Infrastructure\AlSsareea.Modules.Carts.Infrastructure.csproj" />
+    <ProjectReference Include="..\..\src\Modules\Orders\AlSsareea.Modules.Orders.Application\AlSsareea.Modules.Orders.Application.csproj" />
+    <ProjectReference Include="..\..\src\Modules\Orders\AlSsareea.Modules.Orders.Contracts\AlSsareea.Modules.Orders.Contracts.csproj" />
+    <ProjectReference Include="..\..\src\Modules\Orders\AlSsareea.Modules.Orders.Domain\AlSsareea.Modules.Orders.Domain.csproj" />
+    <ProjectReference Include="..\..\src\Modules\Orders\AlSsareea.Modules.Orders.Infrastructure\AlSsareea.Modules.Orders.Infrastructure.csproj" />
     <ProjectReference Include="..\..\src\AlSsareea.Api\AlSsareea.Api.csproj" />
     <PackageReference Include="coverlet.collector" PrivateAssets="all" />
     <PackageReference Include="Microsoft.NET.Test.Sdk" />

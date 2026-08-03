@@ -4,7 +4,7 @@ Backend foundation for **AlSsareea (عالسريع)**, a multilingual delivery p
 
 ## Status
 
-Phase 9B adds the Promotions module on top of the completed Identity, authentication,
+Phase 11 adds the Orders module on top of the completed Identity, authentication,
 authorization, Customers, and Maps phases. The solution now includes merchant and branch
 lifecycles, scoped employees and ownership, relational schedules and overrides, PostGIS
 branch locations, Maps-owned service-area assignments, and merchant-owned localized
@@ -17,7 +17,8 @@ integer-minor-unit calculations and immutable calculation snapshots. See
 [the Catalog module](docs/modules/catalog.md), and
 [the Media module](docs/modules/media.md), and
 [the Pricing module](docs/modules/pricing.md), and
-[the Promotions architecture](docs/architecture/promotions.md).
+[the Promotions architecture](docs/architecture/promotions.md), and
+[the Orders module](src/Modules/Orders/README.md).
 
 ## Requirements
 
@@ -52,12 +53,13 @@ docker compose down
 
 ## Connection string
 
-Identity, Customers, Maps, Merchants, Catalog, Media, Pricing, and Promotions own separate contexts and migration histories while normally
+Identity, Customers, Maps, Merchants, Catalog, Media, Pricing, Promotions, Carts, and Orders own separate contexts and migration histories while normally
 using the same PostgreSQL database. Configure `ConnectionStrings:IdentityDatabase`,
 `ConnectionStrings:CustomersDatabase`, `ConnectionStrings:MapsDatabase`,
 `ConnectionStrings:MerchantsDatabase`, `ConnectionStrings:CatalogDatabase`, and
 `ConnectionStrings:MediaDatabase`, `ConnectionStrings:PricingDatabase`, and
-`ConnectionStrings:PromotionsDatabase`.
+`ConnectionStrings:PromotionsDatabase`, `ConnectionStrings:CartsDatabase`, and
+`ConnectionStrings:OrdersDatabase`.
 `appsettings.Development.json` contains local-only values matching Compose.
 
 ```powershell
@@ -70,6 +72,8 @@ dotnet user-secrets set "ConnectionStrings:MediaDatabase" "Host=localhost;Port=5
 dotnet user-secrets set "ConnectionStrings:PricingDatabase" "Host=localhost;Port=5432;Database=alssareea;Username=alssareea;Password=<development-password>" --project src/AlSsareea.Api
 dotnet user-secrets set "ConnectionStrings:MerchantsDatabase" "Host=localhost;Port=5432;Database=alssareea;Username=alssareea;Password=<development-password>" --project src/AlSsareea.Api
 dotnet user-secrets set "ConnectionStrings:PromotionsDatabase" "Host=localhost;Port=5432;Database=alssareea;Username=alssareea;Password=<development-password>" --project src/AlSsareea.Api
+dotnet user-secrets set "ConnectionStrings:CartsDatabase" "Host=localhost;Port=5432;Database=alssareea;Username=alssareea;Password=<development-password>" --project src/AlSsareea.Api
+dotnet user-secrets set "ConnectionStrings:OrdersDatabase" "Host=localhost;Port=5432;Database=alssareea;Username=alssareea;Password=<development-password>" --project src/AlSsareea.Api
 ```
 
 No production connection string is stored in the repository.
@@ -99,6 +103,8 @@ $catalogProject = ".\src\Modules\Catalog\AlSsareea.Modules.Catalog.Infrastructur
 $mediaProject = ".\src\Modules\Media\AlSsareea.Modules.Media.Infrastructure\AlSsareea.Modules.Media.Infrastructure.csproj"
 $pricingProject = ".\src\Modules\Pricing\AlSsareea.Modules.Pricing.Infrastructure\AlSsareea.Modules.Pricing.Infrastructure.csproj"
 $promotionsProject = ".\src\Modules\Promotions\AlSsareea.Modules.Promotions.Infrastructure\AlSsareea.Modules.Promotions.Infrastructure.csproj"
+$cartsProject = ".\src\Modules\Carts\AlSsareea.Modules.Carts.Infrastructure\AlSsareea.Modules.Carts.Infrastructure.csproj"
+$ordersProject = ".\src\Modules\Orders\AlSsareea.Modules.Orders.Infrastructure\AlSsareea.Modules.Orders.Infrastructure.csproj"
 
 dotnet ef migrations add <MigrationName> --project $identityProject --context IdentityDbContext --output-dir Persistence\Migrations
 dotnet ef database update --project $identityProject --context IdentityDbContext
@@ -117,6 +123,10 @@ dotnet ef database update --project $pricingProject --context PricingDbContext
 dotnet ef migrations has-pending-model-changes --project $pricingProject --context PricingDbContext
 dotnet ef database update --project $promotionsProject --context PromotionsDbContext
 dotnet ef migrations has-pending-model-changes --project $promotionsProject --context PromotionsDbContext
+dotnet ef database update --project $cartsProject --context CartsDbContext
+dotnet ef migrations has-pending-model-changes --project $cartsProject --context CartsDbContext
+dotnet ef database update --project $ordersProject --startup-project $ordersProject --context OrdersDbContext
+dotnet ef migrations has-pending-model-changes --project $ordersProject --startup-project $ordersProject --context OrdersDbContext
 ```
 
 Only remove a migration that has not been applied. Migrations are never applied automatically when the API starts.
@@ -192,6 +202,8 @@ Future versioned business endpoints will use the `/api/v1` base path. The unvers
 - `src/Modules/Media`: Validated image lifecycle, local storage abstraction, variants, and media lookup contracts.
 - `src/Modules/Pricing`: Scoped pricing policy lifecycle, deterministic fee calculation, and calculation snapshots.
 - `src/Modules/Promotions`: Promotion lifecycle, coupons, eligibility, evaluation, funding attribution, and owned persistence.
+- `src/Modules/Carts`: Customer cart lifecycle, configured lines, idempotent mutations, expiration, and authoritative checkout summaries.
+- `src/Modules/Orders`: Immutable order snapshots, lifecycle/history, idempotent creation, optimistic concurrency, and transactional outbox.
 - `tests`: unit, integration, and architecture tests.
 - `docs`: architecture notes and Architecture Decision Records.
 
@@ -216,3 +228,5 @@ boundaries, and its own migration history documented in `docs/architecture/maps.
 There are no cross-schema foreign keys.
 Promotions owns schema `promotions`, its own migration history, promotion, redemption,
 and audit tables, and no cross-schema foreign keys.
+Orders owns schema `orders`, its own migration history, relational order snapshots,
+creation idempotency, and an outbox; it has no cross-schema foreign keys or cascade deletes.

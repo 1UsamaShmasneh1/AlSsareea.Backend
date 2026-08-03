@@ -39,3 +39,10 @@ jobs:
           dotnet ef migrations has-pending-model-changes
           --project ./src/Modules/Identity/AlSsareea.Modules.Identity.Infrastructure/AlSsareea.Modules.Identity.Infrastructure.csproj
           --context IdentityDbContext
+
+      - name: Verify Orders migration model
+        run: >-
+          dotnet ef migrations has-pending-model-changes
+          --project ./src/Modules/Orders/AlSsareea.Modules.Orders.Infrastructure/AlSsareea.Modules.Orders.Infrastructure.csproj
+          --startup-project ./src/Modules/Orders/AlSsareea.Modules.Orders.Infrastructure/AlSsareea.Modules.Orders.Infrastructure.csproj
+          --context OrdersDbContext

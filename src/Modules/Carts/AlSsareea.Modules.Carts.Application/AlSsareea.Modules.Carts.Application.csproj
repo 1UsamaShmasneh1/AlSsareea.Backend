@@ -1,0 +1,8 @@
+<Project Sdk="Microsoft.NET.Sdk">
+  <ItemGroup>
+    <ProjectReference Include="..\AlSsareea.Modules.Carts.Domain\AlSsareea.Modules.Carts.Domain.csproj" />
+    <ProjectReference Include="..\AlSsareea.Modules.Carts.Contracts\AlSsareea.Modules.Carts.Contracts.csproj" />
+    <ProjectReference Include="..\..\..\BuildingBlocks\AlSsareea.BuildingBlocks.Application\AlSsareea.BuildingBlocks.Application.csproj" />
+  </ItemGroup>
+</Project>
+

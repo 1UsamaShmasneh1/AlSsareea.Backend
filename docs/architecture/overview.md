@@ -41,3 +41,13 @@ coupon normalization, lifecycle, deterministic eligibility and conflict evaluati
 funding attribution, stable snapshots, and append-only usage/audit records. It consumes
 Pricing breakdown contracts and validates merchant/catalog scope through public module
 contracts without accessing another module's storage.
+
+Phase 10 adds the [Carts module](../modules/carts/README.md). Carts owns pre-order state
+and composes Customers, Merchants, Catalog, Pricing, and Promotions only through public
+contracts. Its checkout summary is recalculated and is not an order or payment boundary.
+
+Phase 11 adds the [Orders module](../../src/Modules/Orders/README.md). Orders turns a
+trusted, freshly validated checkout summary into immutable relational snapshots, owns the
+explicit order lifecycle and append-only history, and atomically persists creation
+idempotency and integration events in its own outbox. Cart conversion is idempotent and no
+distributed transaction or cross-schema foreign key is used.

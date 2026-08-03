@@ -58,3 +58,9 @@ public interface IMerchantCatalogScopeProvider
         Guid branchId,
         CancellationToken cancellationToken = default);
 }
+
+public sealed record OrderMerchantSnapshotContract(Guid MerchantId, Guid? BranchId, string MerchantDisplayName, string? BranchDisplayName, string? BranchAddress, string? BranchPhoneNumber);
+public interface IOrderMerchantSnapshotProvider
+{
+    Task<OrderMerchantSnapshotContract?> GetAsync(Guid merchantId, Guid? branchId, CancellationToken cancellationToken = default);
+}

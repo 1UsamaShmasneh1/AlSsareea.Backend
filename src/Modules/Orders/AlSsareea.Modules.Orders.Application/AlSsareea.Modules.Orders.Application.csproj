@@ -1,0 +1,11 @@
+<Project Sdk="Microsoft.NET.Sdk">
+  <ItemGroup>
+    <ProjectReference Include="..\AlSsareea.Modules.Orders.Domain\AlSsareea.Modules.Orders.Domain.csproj" />
+    <ProjectReference Include="..\AlSsareea.Modules.Orders.Contracts\AlSsareea.Modules.Orders.Contracts.csproj" />
+    <ProjectReference Include="..\..\..\BuildingBlocks\AlSsareea.BuildingBlocks.Application\AlSsareea.BuildingBlocks.Application.csproj" />
+    <ProjectReference Include="..\..\..\BuildingBlocks\AlSsareea.BuildingBlocks.Contracts\AlSsareea.BuildingBlocks.Contracts.csproj" />
+    <ProjectReference Include="..\..\Carts\AlSsareea.Modules.Carts.Contracts\AlSsareea.Modules.Carts.Contracts.csproj" />
+    <ProjectReference Include="..\..\Customers\AlSsareea.Modules.Customers.Contracts\AlSsareea.Modules.Customers.Contracts.csproj" />
+    <ProjectReference Include="..\..\Merchants\AlSsareea.Modules.Merchants.Contracts\AlSsareea.Modules.Merchants.Contracts.csproj" />
+  </ItemGroup>
+</Project>
