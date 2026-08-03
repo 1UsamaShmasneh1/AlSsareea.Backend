@@ -96,9 +96,21 @@ namespace AlSsareea.Modules.Orders.Infrastructure.Persistence.Migrations
                         .HasColumnType("timestamp with time zone")
                         .HasColumnName("driver_assigned_at_utc");
 
+                    b.Property<int?>("EstimatedPreparationMinutes")
+                        .HasColumnType("integer")
+                        .HasColumnName("estimated_preparation_minutes");
+
+                    b.Property<DateTime?>("EstimatedReadyAtUtc")
+                        .HasColumnType("timestamp with time zone")
+                        .HasColumnName("estimated_ready_at_utc");
+
                     b.Property<DateTime?>("FailedAtUtc")
                         .HasColumnType("timestamp with time zone")
                         .HasColumnName("failed_at_utc");
+
+                    b.Property<Guid?>("MerchantAcceptedByUserId")
+                        .HasColumnType("uuid")
+                        .HasColumnName("merchant_accepted_by_user_id");
 
                     b.Property<Guid?>("MerchantBranchId")
                         .HasColumnType("uuid")
@@ -112,6 +124,19 @@ namespace AlSsareea.Modules.Orders.Infrastructure.Persistence.Migrations
                         .HasMaxLength(500)
                         .HasColumnType("character varying(500)")
                         .HasColumnName("merchant_notes");
+
+                    b.Property<Guid?>("MerchantRejectedByUserId")
+                        .HasColumnType("uuid")
+                        .HasColumnName("merchant_rejected_by_user_id");
+
+                    b.Property<string>("MerchantRejectionNote")
+                        .HasMaxLength(500)
+                        .HasColumnType("character varying(500)")
+                        .HasColumnName("merchant_rejection_note");
+
+                    b.Property<short?>("MerchantRejectionReason")
+                        .HasColumnType("smallint")
+                        .HasColumnName("merchant_rejection_reason");
 
                     b.Property<long>("OptionsTotalMinor")
                         .HasColumnType("bigint")
@@ -229,17 +254,29 @@ namespace AlSsareea.Modules.Orders.Infrastructure.Persistence.Migrations
                     b.HasIndex("Status")
                         .HasDatabaseName("ix_orders_status");
 
+                    b.HasIndex("UpdatedAtUtc")
+                        .HasDatabaseName("ix_orders_updated_at_utc");
+
                     b.HasIndex("CustomerId", "CreatedAtUtc")
                         .HasDatabaseName("ix_orders_customer_created");
 
-                    b.HasIndex("MerchantId", "Status", "CreatedAtUtc")
-                        .HasDatabaseName("ix_orders_merchant_status_created");
+                    b.HasIndex("MerchantBranchId", "Status", "SubmittedAtUtc")
+                        .HasDatabaseName("ix_orders_branch_status_submitted");
+
+                    b.HasIndex("MerchantId", "Status", "SubmittedAtUtc")
+                        .HasDatabaseName("ix_orders_merchant_status_submitted");
 
                     b.ToTable("orders", "orders", t =>
                         {
                             t.HasCheckConstraint("ck_orders_currency", "char_length(currency) = 3");
 
+                            t.HasCheckConstraint("ck_orders_estimated_ready", "estimated_ready_at_utc IS NULL OR accepted_at_utc IS NOT NULL AND estimated_ready_at_utc >= accepted_at_utc");
+
+                            t.HasCheckConstraint("ck_orders_merchant_rejection_reason", "merchant_rejection_reason IS NULL OR merchant_rejection_reason BETWEEN 1 AND 6");
+
                             t.HasCheckConstraint("ck_orders_money_non_negative", "subtotal_minor >= 0 AND options_total_minor >= 0 AND product_discount_minor >= 0 AND coupon_discount_minor >= 0 AND delivery_discount_minor >= 0 AND delivery_fee_minor >= 0 AND service_fee_minor >= 0 AND platform_fee_minor >= 0 AND small_order_fee_minor >= 0 AND tax_minor >= 0 AND total_minor >= 0");
+
+                            t.HasCheckConstraint("ck_orders_preparation_minutes", "estimated_preparation_minutes IS NULL OR estimated_preparation_minutes BETWEEN 1 AND 240");
 
                             t.HasCheckConstraint("ck_orders_scheduled", "scheduled_for_utc IS NULL OR scheduled_for_utc > created_at_utc");
 
@@ -453,19 +490,92 @@ namespace AlSsareea.Modules.Orders.Infrastructure.Persistence.Migrations
                         });
                 });
 
-            modelBuilder.Entity("AlSsareea.Modules.Orders.Infrastructure.Persistence.OrderCreationIdempotencyRecord", b =>
+            modelBuilder.Entity("AlSsareea.Modules.Orders.Infrastructure.Persistence.MerchantOrderAuditRecord", b =>
                 {
                     b.Property<Guid>("Id")
                         .HasColumnType("uuid")
                         .HasColumnName("id");
 
+                    b.Property<Guid>("ActorUserId")
+                        .HasColumnType("uuid")
+                        .HasColumnName("actor_user_id");
+
+                    b.Property<Guid?>("BranchId")
+                        .HasColumnType("uuid")
+                        .HasColumnName("branch_id");
+
+                    b.Property<string>("CorrelationId")
+                        .HasMaxLength(100)
+                        .HasColumnType("character varying(100)")
+                        .HasColumnName("correlation_id");
+
+                    b.Property<string>("IdempotencyKeyHash")
+                        .IsRequired()
+                        .HasMaxLength(64)
+                        .HasColumnType("character varying(64)")
+                        .HasColumnName("idempotency_key_hash");
+
+                    b.Property<Guid>("MerchantId")
+                        .HasColumnType("uuid")
+                        .HasColumnName("merchant_id");
+
+                    b.Property<short>("NewStatus")
+                        .HasColumnType("smallint")
+                        .HasColumnName("new_status");
+
+                    b.Property<DateTime>("OccurredAtUtc")
+                        .HasColumnType("timestamp with time zone")
+                        .HasColumnName("occurred_at_utc");
+
+                    b.Property<short>("OldStatus")
+                        .HasColumnType("smallint")
+                        .HasColumnName("old_status");
+
+                    b.Property<string>("Operation")
+                        .IsRequired()
+                        .HasMaxLength(80)
+                        .HasColumnType("character varying(80)")
+                        .HasColumnName("operation");
+
+                    b.Property<Guid>("OrderId")
+                        .HasColumnType("uuid")
+                        .HasColumnName("order_id");
+
+                    b.Property<string>("SafeReasonCode")
+                        .HasMaxLength(80)
+                        .HasColumnType("character varying(80)")
+                        .HasColumnName("safe_reason_code");
+
+                    b.HasKey("Id")
+                        .HasName("pk_merchant_order_audit");
+
+                    b.HasIndex("MerchantId", "OccurredAtUtc")
+                        .HasDatabaseName("ix_merchant_order_audit_merchant_occurred");
+
+                    b.HasIndex("OrderId", "OccurredAtUtc")
+                        .HasDatabaseName("ix_merchant_order_audit_order_occurred");
+
+                    b.ToTable("merchant_order_audit", "orders", t =>
+                        {
+                            t.HasCheckConstraint("ck_merchant_order_audit_idempotency_hash", "char_length(idempotency_key_hash) = 64");
+
+                            t.HasCheckConstraint("ck_merchant_order_audit_operation", "char_length(operation) > 0");
+                        });
+                });
+
+            modelBuilder.Entity("AlSsareea.Modules.Orders.Infrastructure.Persistence.OrderOperationIdempotencyRecord", b =>
+                {
+                    b.Property<Guid>("Id")
+                        .HasColumnType("uuid")
+                        .HasColumnName("id");
+
+                    b.Property<Guid>("ActorId")
+                        .HasColumnType("uuid")
+                        .HasColumnName("actor_id");
+
                     b.Property<DateTime>("CreatedAtUtc")
                         .HasColumnType("timestamp with time zone")
                         .HasColumnName("created_at_utc");
-
-                    b.Property<Guid>("CustomerId")
-                        .HasColumnType("uuid")
-                        .HasColumnName("customer_id");
 
                     b.Property<string>("KeyHash")
                         .IsRequired()
@@ -490,19 +600,18 @@ namespace AlSsareea.Modules.Orders.Infrastructure.Persistence.Migrations
                         .HasColumnName("request_hash");
 
                     b.HasKey("Id")
-                        .HasName("pk_order_creation_idempotency");
+                        .HasName("pk_order_operation_idempotency");
 
                     b.HasIndex("OrderId")
-                        .IsUnique()
-                        .HasDatabaseName("ux_order_creation_idempotency_order_id");
+                        .HasDatabaseName("ix_order_operation_idempotency_order_id");
 
-                    b.HasIndex("CustomerId", "Operation", "KeyHash")
+                    b.HasIndex("ActorId", "Operation", "KeyHash")
                         .IsUnique()
-                        .HasDatabaseName("ux_order_creation_idempotency_customer_operation_key");
+                        .HasDatabaseName("ux_order_operation_idempotency_actor_operation_key");
 
-                    b.ToTable("order_creation_idempotency", "orders", t =>
+                    b.ToTable("order_operation_idempotency", "orders", t =>
                         {
-                            t.HasCheckConstraint("ck_order_creation_idempotency_hashes", "char_length(key_hash) = 64 AND char_length(request_hash) = 64");
+                            t.HasCheckConstraint("ck_order_operation_idempotency_hashes", "char_length(key_hash) = 64 AND char_length(request_hash) = 64");
                         });
                 });
 
@@ -769,14 +878,24 @@ namespace AlSsareea.Modules.Orders.Infrastructure.Persistence.Migrations
                         .HasConstraintName("fk_order_status_history_orders_order_id");
                 });
 
-            modelBuilder.Entity("AlSsareea.Modules.Orders.Infrastructure.Persistence.OrderCreationIdempotencyRecord", b =>
+            modelBuilder.Entity("AlSsareea.Modules.Orders.Infrastructure.Persistence.MerchantOrderAuditRecord", b =>
                 {
                     b.HasOne("AlSsareea.Modules.Orders.Domain.Order", null)
-                        .WithOne()
-                        .HasForeignKey("AlSsareea.Modules.Orders.Infrastructure.Persistence.OrderCreationIdempotencyRecord", "OrderId")
+                        .WithMany()
+                        .HasForeignKey("OrderId")
                         .OnDelete(DeleteBehavior.NoAction)
                         .IsRequired()
-                        .HasConstraintName("fk_order_creation_idempotency_orders_order_id");
+                        .HasConstraintName("fk_merchant_order_audit_orders_order_id");
+                });
+
+            modelBuilder.Entity("AlSsareea.Modules.Orders.Infrastructure.Persistence.OrderOperationIdempotencyRecord", b =>
+                {
+                    b.HasOne("AlSsareea.Modules.Orders.Domain.Order", null)
+                        .WithMany()
+                        .HasForeignKey("OrderId")
+                        .OnDelete(DeleteBehavior.NoAction)
+                        .IsRequired()
+                        .HasConstraintName("fk_order_operation_idempotency_orders_order_id");
                 });
 
             modelBuilder.Entity("AlSsareea.Modules.Orders.Domain.Order", b =>

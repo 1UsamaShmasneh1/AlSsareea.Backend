@@ -3,6 +3,7 @@ using System.Text;
 using System.Text.Json;
 using System.Threading.RateLimiting;
 using AlSsareea.Api.Configuration;
+using AlSsareea.Api.Realtime;
 using AlSsareea.Api.Security;
 using AlSsareea.Api.Serialization;
 using AlSsareea.BuildingBlocks.Application.Localization;
@@ -19,6 +20,7 @@ using AlSsareea.Modules.Maps.Infrastructure;
 using AlSsareea.Modules.Media.Infrastructure;
 using AlSsareea.Modules.Merchants.Application;
 using AlSsareea.Modules.Merchants.Infrastructure;
+using AlSsareea.Modules.Orders.Application;
 using AlSsareea.Modules.Orders.Infrastructure;
 using AlSsareea.Modules.Pricing.Application;
 using AlSsareea.Modules.Pricing.Infrastructure;
@@ -63,6 +65,12 @@ public static class ServiceCollectionExtensions
             };
             options.Events = new JwtBearerEvents
             {
+                OnMessageReceived = context =>
+                {
+                    string token = context.Request.Query["access_token"].ToString();
+                    if (!string.IsNullOrWhiteSpace(token) && context.HttpContext.Request.Path.StartsWithSegments("/hubs/merchant-orders")) context.Token = token;
+                    return Task.CompletedTask;
+                },
                 OnTokenValidated = async context =>
                 {
                     string? sub = context.Principal?.FindFirst(JwtRegisteredClaimNames.Sub)?.Value; string? sid = context.Principal?.FindFirst("sid")?.Value; string? stamp = context.Principal?.FindFirst("sst")?.Value;
@@ -73,6 +81,7 @@ public static class ServiceCollectionExtensions
             };
         });
         services.AddAuthorization();
+        services.AddSignalR();
         services.AddSingleton<AuthenticationRequestRateLimiter>();
         services.AddHttpContextAccessor(); services.AddScoped<ICurrentUser, CurrentUser>(); services.AddSingleton<IAuthorizationPolicyProvider, PermissionPolicyProvider>(); services.AddSingleton<IAuthorizationHandler, PermissionAuthorizationHandler>();
         AuthenticationRateLimitOptions rateLimits = configuration.GetSection(AuthenticationRateLimitOptions.SectionName).Get<AuthenticationRateLimitOptions>() ?? new AuthenticationRateLimitOptions();
@@ -97,6 +106,8 @@ public static class ServiceCollectionExtensions
             AddFixedWindow(options, "promotions-read", 120, 60);
             AddFixedWindow(options, "promotions-write", 40, 60);
             AddFixedWindow(options, "carts-write", 60, 60);
+            AddFixedWindow(options, "merchant-orders-read", 240, 60);
+            AddFixedWindow(options, "merchant-orders-write", 120, 60);
         });
 
         services.ConfigureHttpJsonOptions(options =>
@@ -131,6 +142,7 @@ public static class ServiceCollectionExtensions
         services.AddPromotionsInfrastructure(configuration);
         services.AddCartsInfrastructure(configuration);
         services.AddOrdersInfrastructure(configuration);
+        services.AddSingleton<IMerchantOrderRealtimePublisher, MerchantOrderRealtimePublisher>();
 
         return services;
     }

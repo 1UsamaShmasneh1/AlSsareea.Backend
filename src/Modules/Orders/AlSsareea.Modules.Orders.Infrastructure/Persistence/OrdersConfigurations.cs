@@ -19,12 +19,16 @@ internal sealed class OrderConfiguration : IEntityTypeConfiguration<Order>
             t.HasCheckConstraint("ck_orders_money_non_negative", "subtotal_minor >= 0 AND options_total_minor >= 0 AND product_discount_minor >= 0 AND coupon_discount_minor >= 0 AND delivery_discount_minor >= 0 AND delivery_fee_minor >= 0 AND service_fee_minor >= 0 AND platform_fee_minor >= 0 AND small_order_fee_minor >= 0 AND tax_minor >= 0 AND total_minor >= 0");
             t.HasCheckConstraint("ck_orders_total", "total_minor = subtotal_minor + delivery_fee_minor + service_fee_minor + platform_fee_minor + small_order_fee_minor + tax_minor - product_discount_minor - coupon_discount_minor - delivery_discount_minor");
             t.HasCheckConstraint("ck_orders_scheduled", "scheduled_for_utc IS NULL OR scheduled_for_utc > created_at_utc");
+            t.HasCheckConstraint("ck_orders_preparation_minutes", "estimated_preparation_minutes IS NULL OR estimated_preparation_minutes BETWEEN 1 AND 240");
+            t.HasCheckConstraint("ck_orders_estimated_ready", "estimated_ready_at_utc IS NULL OR accepted_at_utc IS NOT NULL AND estimated_ready_at_utc >= accepted_at_utc");
+            t.HasCheckConstraint("ck_orders_merchant_rejection_reason", "merchant_rejection_reason IS NULL OR merchant_rejection_reason BETWEEN 1 AND 6");
         });
         b.HasKey(x => x.Id).HasName("pk_orders"); b.Property(x => x.Id).StrongId(x => x.Value, x => new OrderId(x));
         b.Property(x => x.OrderNumber).HasMaxLength(OrderRules.OrderNumberMaximumLength); b.Property(x => x.Type).HasConversion<short>(); b.Property(x => x.Status).HasConversion<short>(); b.Property(x => x.Currency).HasMaxLength(OrderRules.CurrencyLength).IsFixedLength();
         b.Property(x => x.CustomerNotes).HasMaxLength(OrderRules.CustomerNotesMaximumLength); b.Property(x => x.MerchantNotes).HasMaxLength(OrderRules.MerchantNotesMaximumLength); b.Property(x => x.CancellationCode).HasMaxLength(OrderRules.ReasonCodeMaximumLength); b.Property(x => x.CancellationReason).HasMaxLength(OrderRules.ReasonTextMaximumLength); b.Property(x => x.CancelledBy).HasConversion<short>();
+        b.Property(x => x.MerchantRejectionReason).HasConversion<short>(); b.Property(x => x.MerchantRejectionNote).HasMaxLength(OrderRules.ReasonTextMaximumLength);
         b.Property(x => x.PricingReference).HasMaxLength(160); b.Property(x => x.ConcurrencyStamp).IsConcurrencyToken();
-        b.HasIndex(x => x.OrderNumber).IsUnique().HasDatabaseName("ux_orders_order_number"); b.HasIndex(x => x.SourceCartId).IsUnique().HasDatabaseName("ux_orders_source_cart_id"); b.HasIndex(x => x.CustomerId).HasDatabaseName("ix_orders_customer_id"); b.HasIndex(x => x.MerchantId).HasDatabaseName("ix_orders_merchant_id"); b.HasIndex(x => x.MerchantBranchId).HasDatabaseName("ix_orders_merchant_branch_id"); b.HasIndex(x => x.Status).HasDatabaseName("ix_orders_status"); b.HasIndex(x => x.CreatedAtUtc).HasDatabaseName("ix_orders_created_at_utc"); b.HasIndex(x => x.ScheduledForUtc).HasDatabaseName("ix_orders_scheduled_for_utc"); b.HasIndex(x => new { x.CustomerId, x.CreatedAtUtc }).HasDatabaseName("ix_orders_customer_created"); b.HasIndex(x => new { x.MerchantId, x.Status, x.CreatedAtUtc }).HasDatabaseName("ix_orders_merchant_status_created");
+        b.HasIndex(x => x.OrderNumber).IsUnique().HasDatabaseName("ux_orders_order_number"); b.HasIndex(x => x.SourceCartId).IsUnique().HasDatabaseName("ux_orders_source_cart_id"); b.HasIndex(x => x.CustomerId).HasDatabaseName("ix_orders_customer_id"); b.HasIndex(x => x.MerchantId).HasDatabaseName("ix_orders_merchant_id"); b.HasIndex(x => x.MerchantBranchId).HasDatabaseName("ix_orders_merchant_branch_id"); b.HasIndex(x => x.Status).HasDatabaseName("ix_orders_status"); b.HasIndex(x => x.CreatedAtUtc).HasDatabaseName("ix_orders_created_at_utc"); b.HasIndex(x => x.UpdatedAtUtc).HasDatabaseName("ix_orders_updated_at_utc"); b.HasIndex(x => x.ScheduledForUtc).HasDatabaseName("ix_orders_scheduled_for_utc"); b.HasIndex(x => new { x.CustomerId, x.CreatedAtUtc }).HasDatabaseName("ix_orders_customer_created"); b.HasIndex(x => new { x.MerchantId, x.Status, x.SubmittedAtUtc }).HasDatabaseName("ix_orders_merchant_status_submitted"); b.HasIndex(x => new { x.MerchantBranchId, x.Status, x.SubmittedAtUtc }).HasDatabaseName("ix_orders_branch_status_submitted");
         b.OwnsOne(x => x.Customer, owned =>
         {
             owned.Property(x => x.CustomerId).HasColumnName("snapshot_customer_id"); owned.Property(x => x.DisplayName).HasColumnName("customer_display_name").HasMaxLength(OrderRules.NameMaximumLength); owned.Property(x => x.PhoneNumber).HasColumnName("customer_phone_number").HasMaxLength(40); owned.Property(x => x.PreferredLanguage).HasColumnName("customer_preferred_language").HasMaxLength(5);
@@ -68,11 +72,31 @@ internal sealed class OrderStatusHistoryConfiguration : IEntityTypeConfiguration
     }
 }
 
-internal sealed class OrderCreationIdempotencyConfiguration : IEntityTypeConfiguration<OrderCreationIdempotencyRecord>
+internal sealed class OrderOperationIdempotencyConfiguration : IEntityTypeConfiguration<OrderOperationIdempotencyRecord>
 {
-    public void Configure(EntityTypeBuilder<OrderCreationIdempotencyRecord> b)
+    public void Configure(EntityTypeBuilder<OrderOperationIdempotencyRecord> b)
     {
-        b.ToTable("order_creation_idempotency", OrdersPersistence.Schema, t => t.HasCheckConstraint("ck_order_creation_idempotency_hashes", "char_length(key_hash) = 64 AND char_length(request_hash) = 64")); b.HasKey(x => x.Id).HasName("pk_order_creation_idempotency"); b.Property(x => x.Id).StrongId(x => x.Value, x => new OrderCreationIdempotencyId(x)); b.Property(x => x.OrderId).StrongId(x => x.Value, x => new OrderId(x)); b.Property(x => x.Operation).HasMaxLength(80); b.Property(x => x.KeyHash).HasMaxLength(64); b.Property(x => x.RequestHash).HasMaxLength(64); b.HasIndex(x => new { x.CustomerId, x.Operation, x.KeyHash }).IsUnique().HasDatabaseName("ux_order_creation_idempotency_customer_operation_key"); b.HasIndex(x => x.OrderId).IsUnique().HasDatabaseName("ux_order_creation_idempotency_order_id"); b.HasOne<Order>().WithOne().HasForeignKey<OrderCreationIdempotencyRecord>(x => x.OrderId).OnDelete(DeleteBehavior.NoAction).HasConstraintName("fk_order_creation_idempotency_orders_order_id");
+        b.ToTable("order_operation_idempotency", OrdersPersistence.Schema, t => t.HasCheckConstraint("ck_order_operation_idempotency_hashes", "char_length(key_hash) = 64 AND char_length(request_hash) = 64")); b.HasKey(x => x.Id).HasName("pk_order_operation_idempotency"); b.Property(x => x.Id).StrongId(x => x.Value, x => new OrderCreationIdempotencyId(x)); b.Property(x => x.OrderId).StrongId(x => x.Value, x => new OrderId(x)); b.Property(x => x.Operation).HasMaxLength(80); b.Property(x => x.KeyHash).HasMaxLength(64); b.Property(x => x.RequestHash).HasMaxLength(64); b.HasIndex(x => new { x.ActorId, x.Operation, x.KeyHash }).IsUnique().HasDatabaseName("ux_order_operation_idempotency_actor_operation_key"); b.HasIndex(x => x.OrderId).HasDatabaseName("ix_order_operation_idempotency_order_id"); b.HasOne<Order>().WithMany().HasForeignKey(x => x.OrderId).OnDelete(DeleteBehavior.NoAction).HasConstraintName("fk_order_operation_idempotency_orders_order_id");
+    }
+}
+
+internal sealed class MerchantOrderAuditConfiguration : IEntityTypeConfiguration<MerchantOrderAuditRecord>
+{
+    public void Configure(EntityTypeBuilder<MerchantOrderAuditRecord> b)
+    {
+        b.ToTable("merchant_order_audit", OrdersPersistence.Schema, t =>
+        {
+            t.HasCheckConstraint("ck_merchant_order_audit_operation", "char_length(operation) > 0");
+            t.HasCheckConstraint("ck_merchant_order_audit_idempotency_hash", "char_length(idempotency_key_hash) = 64");
+        });
+        b.HasKey(x => x.Id).HasName("pk_merchant_order_audit");
+        b.Property(x => x.Id).StrongId(x => x.Value, x => new MerchantOrderAuditId(x));
+        b.Property(x => x.OrderId).StrongId(x => x.Value, x => new OrderId(x));
+        b.Property(x => x.Operation).HasMaxLength(80); b.Property(x => x.OldStatus).HasConversion<short>(); b.Property(x => x.NewStatus).HasConversion<short>();
+        b.Property(x => x.CorrelationId).HasMaxLength(100); b.Property(x => x.IdempotencyKeyHash).HasMaxLength(64); b.Property(x => x.SafeReasonCode).HasMaxLength(OrderRules.ReasonCodeMaximumLength);
+        b.HasIndex(x => new { x.OrderId, x.OccurredAtUtc }).HasDatabaseName("ix_merchant_order_audit_order_occurred");
+        b.HasIndex(x => new { x.MerchantId, x.OccurredAtUtc }).HasDatabaseName("ix_merchant_order_audit_merchant_occurred");
+        b.HasOne<Order>().WithMany().HasForeignKey(x => x.OrderId).OnDelete(DeleteBehavior.NoAction).HasConstraintName("fk_merchant_order_audit_orders_order_id");
     }
 }
 

@@ -1,3 +1,5 @@
+using System.Reflection;
+using AlSsareea.Api.Realtime;
 using AlSsareea.Modules.Orders.Application;
 using AlSsareea.Modules.Orders.Contracts;
 using AlSsareea.Modules.Orders.Domain;
@@ -46,5 +48,29 @@ public sealed class OrdersDependencyRulesTests
     {
         var money = typeof(Order).Assembly.GetTypes().SelectMany(x => x.GetProperties()).Where(x => x.Name.EndsWith("Minor", StringComparison.Ordinal)).ToArray();
         Assert.NotEmpty(money); Assert.All(money, x => Assert.Equal(typeof(long), x.PropertyType));
+    }
+
+    [Fact]
+    public void MerchantOrderEndpointsAndHubDoNotExposeOrdersDbContext()
+    {
+        Type context = typeof(OrdersDbContext);
+        Type[] types = typeof(Program).Assembly.GetTypes().Where(x => x.Namespace is "AlSsareea.Api.Endpoints" or "AlSsareea.Api.Realtime").ToArray();
+        MethodInfo[] methods = types.SelectMany(x => x.GetMethods(BindingFlags.Public | BindingFlags.NonPublic | BindingFlags.Static | BindingFlags.Instance | BindingFlags.DeclaredOnly)).ToArray();
+        Assert.DoesNotContain(methods, x => x.ReturnType == context || x.GetParameters().Any(p => p.ParameterType == context));
+        Assert.DoesNotContain(typeof(MerchantOrdersHub).GetConstructors().SelectMany(x => x.GetParameters()), x => x.ParameterType == context);
+    }
+
+    [Fact]
+    public void OrdersDomainHasNoSignalRConfigurationJwtOrClaimsDependencies()
+    {
+        string[] references = typeof(Order).Assembly.GetReferencedAssemblies().Select(x => x.Name ?? string.Empty).ToArray();
+        Assert.DoesNotContain(references, x => x.Contains("SignalR", StringComparison.Ordinal) || x.Contains("Configuration", StringComparison.Ordinal) || x.Contains("IdentityModel", StringComparison.Ordinal));
+        Assert.DoesNotContain(typeof(Order).Assembly.GetTypes().SelectMany(x => x.GetProperties()), x => x.PropertyType.FullName == "System.Security.Claims.ClaimsPrincipal");
+    }
+
+    [Fact]
+    public void MerchantInfrastructureDoesNotReferenceOrdersInfrastructure()
+    {
+        Assert.DoesNotContain(typeof(AlSsareea.Modules.Merchants.Infrastructure.DependencyInjection).Assembly.GetReferencedAssemblies(), x => x.Name == "AlSsareea.Modules.Orders.Infrastructure");
     }
 }

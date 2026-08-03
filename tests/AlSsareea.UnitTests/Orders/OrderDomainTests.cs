@@ -21,7 +21,7 @@ public sealed class OrderDomainTests
     [Fact]
     public void FullLifecycleUsesExplicitTransitionsAndHistory()
     {
-        Order x = Create(); x.MarkPaymentAuthorized(Now.AddMinutes(1)); x.Submit(Now.AddMinutes(2)); x.AcceptByMerchant(Now.AddMinutes(3), Guid.NewGuid()); x.StartPreparing(Now.AddMinutes(4)); x.MarkReadyForPickup(Now.AddMinutes(5)); x.StartDriverSearch(Now.AddMinutes(6)); x.AssignDriver(Now.AddMinutes(7)); x.MarkDriverArrivingToPickup(Now.AddMinutes(8)); x.ConfirmPickup(Now.AddMinutes(9)); x.StartDelivery(Now.AddMinutes(10)); x.MarkArrived(Now.AddMinutes(11)); x.Deliver(Now.AddMinutes(12)); x.MarkRefundPending(Now.AddMinutes(13)); x.MarkRefunded(Now.AddMinutes(14));
+        Order x = Create(); Guid actor = Guid.NewGuid(); x.MarkPaymentAuthorized(Now.AddMinutes(1)); x.Submit(Now.AddMinutes(2)); x.AcceptByMerchant(Now.AddMinutes(3), actor); x.StartPreparing(Now.AddMinutes(4), actor); x.MarkReadyForPickup(Now.AddMinutes(5), actor); x.StartDriverSearch(Now.AddMinutes(6)); x.AssignDriver(Now.AddMinutes(7)); x.MarkDriverArrivingToPickup(Now.AddMinutes(8)); x.ConfirmPickup(Now.AddMinutes(9)); x.StartDelivery(Now.AddMinutes(10)); x.MarkArrived(Now.AddMinutes(11)); x.Deliver(Now.AddMinutes(12)); x.MarkRefundPending(Now.AddMinutes(13)); x.MarkRefunded(Now.AddMinutes(14));
         Assert.Equal(OrderStatus.Refunded, x.Status); Assert.Equal(15, x.StatusHistory.Count); Assert.Equal(Now.AddMinutes(12), x.DeliveredAtUtc);
     }
     [Fact] public void InvalidTransitionIsRejected() { Order x = Create(); Assert.Throws<DomainException>(() => x.Deliver(Now.AddMinutes(1))); Assert.Equal(OrderStatus.PendingPayment, x.Status); }
@@ -53,5 +53,5 @@ public sealed class OrderDomainTests
     }
     private static OrderItemInput Item() => new(Guid.NewGuid(), 3, null, "Falafel", null, "SKU-1", 2, 450, 50, 0, 500, 1000, 0, 1000, null, [new(Guid.NewGuid(), Guid.NewGuid(), "Extras", "Tahini", 1, 50, 50)]);
     private static OrderPricingInput Pricing(long subtotal = 1000, long total = 1200, string currency = "ILS") => new(subtotal, 100, 0, 0, 0, 100, 50, 25, 0, 25, total, currency, "price:1", Now);
-    private static void AdvanceToDelivered(Order x) { x.MarkPaymentAuthorized(Now.AddMinutes(1)); x.Submit(Now.AddMinutes(2)); x.AcceptByMerchant(Now.AddMinutes(3), Guid.NewGuid()); x.StartPreparing(Now.AddMinutes(4)); x.MarkReadyForPickup(Now.AddMinutes(5)); x.AssignDriver(Now.AddMinutes(6)); x.MarkDriverArrivingToPickup(Now.AddMinutes(7)); x.ConfirmPickup(Now.AddMinutes(8)); x.StartDelivery(Now.AddMinutes(9)); x.MarkArrived(Now.AddMinutes(10)); x.Deliver(Now.AddMinutes(11)); }
+    private static void AdvanceToDelivered(Order x) { Guid actor = Guid.NewGuid(); x.MarkPaymentAuthorized(Now.AddMinutes(1)); x.Submit(Now.AddMinutes(2)); x.AcceptByMerchant(Now.AddMinutes(3), actor); x.StartPreparing(Now.AddMinutes(4), actor); x.MarkReadyForPickup(Now.AddMinutes(5), actor); x.AssignDriver(Now.AddMinutes(6)); x.MarkDriverArrivingToPickup(Now.AddMinutes(7)); x.ConfirmPickup(Now.AddMinutes(8)); x.StartDelivery(Now.AddMinutes(9)); x.MarkArrived(Now.AddMinutes(10)); x.Deliver(Now.AddMinutes(11)); }
 }
