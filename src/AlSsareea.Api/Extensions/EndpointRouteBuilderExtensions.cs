@@ -1,5 +1,6 @@
 using AlSsareea.Api.Configuration;
 using AlSsareea.Api.Endpoints;
+using AlSsareea.Api.Realtime;
 using Microsoft.AspNetCore.Diagnostics.HealthChecks;
 using Microsoft.Extensions.Options;
 
@@ -18,6 +19,8 @@ public static class EndpointRouteBuilderExtensions
         app.MapPromotionEndpoints();
         app.MapCartEndpoints();
         app.MapOrderEndpoints();
+        app.MapMerchantOrderEndpoints();
+        app.MapHub<MerchantOrdersHub>("/hubs/merchant-orders");
         app.MapHealthChecks("/health").WithTags("System");
         app.MapHealthChecks("/health/live", new HealthCheckOptions
         {

@@ -57,10 +57,39 @@ public interface IMerchantCatalogScopeProvider
         Guid merchantId,
         Guid branchId,
         CancellationToken cancellationToken = default);
+
 }
 
 public sealed record OrderMerchantSnapshotContract(Guid MerchantId, Guid? BranchId, string MerchantDisplayName, string? BranchDisplayName, string? BranchAddress, string? BranchPhoneNumber);
 public interface IOrderMerchantSnapshotProvider
 {
     Task<OrderMerchantSnapshotContract?> GetAsync(Guid merchantId, Guid? branchId, CancellationToken cancellationToken = default);
+}
+
+public sealed record MerchantOrderOperationsScope(
+    Guid MerchantId,
+    bool MerchantIsActive,
+    Guid? RestrictedBranchId,
+    bool IsOwner);
+
+public interface IMerchantOrderOperationsScopeProvider
+{
+    Task<IReadOnlyList<MerchantOrderOperationsScope>> GetScopesAsync(
+        Guid userId,
+        CancellationToken cancellationToken = default);
+
+    Task<MerchantOrderOperationsScope?> GetScopeAsync(
+        Guid merchantId,
+        Guid userId,
+        CancellationToken cancellationToken = default);
+
+    Task<bool> IsOperationalBranchAsync(
+        Guid merchantId,
+        Guid branchId,
+        CancellationToken cancellationToken = default);
+
+    Task<bool> IsBranchInMerchantAsync(
+        Guid merchantId,
+        Guid branchId,
+        CancellationToken cancellationToken = default);
 }

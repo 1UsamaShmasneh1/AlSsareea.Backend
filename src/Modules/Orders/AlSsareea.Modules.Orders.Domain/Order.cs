@@ -60,7 +60,13 @@ public sealed class Order : AggregateRoot<OrderId>
     public DateTime UpdatedAtUtc { get; private set; }
     public DateTime? SubmittedAtUtc { get; private set; }
     public DateTime? AcceptedAtUtc { get; private set; }
+    public Guid? MerchantAcceptedByUserId { get; private set; }
+    public int? EstimatedPreparationMinutes { get; private set; }
+    public DateTime? EstimatedReadyAtUtc { get; private set; }
     public DateTime? RejectedAtUtc { get; private set; }
+    public Guid? MerchantRejectedByUserId { get; private set; }
+    public MerchantOrderRejectionReason? MerchantRejectionReason { get; private set; }
+    public string? MerchantRejectionNote { get; private set; }
     public DateTime? PreparingAtUtc { get; private set; }
     public DateTime? ReadyForPickupAtUtc { get; private set; }
     public DateTime? DriverAssignedAtUtc { get; private set; }
@@ -83,10 +89,47 @@ public sealed class Order : AggregateRoot<OrderId>
 
     public void MarkPaymentAuthorized(DateTime atUtc, Guid? actor = null, string? correlationId = null) => Transition(OrderStatus.PaymentAuthorized, atUtc, actor, OrderChangeSource.Payment, null, null, correlationId);
     public void Submit(DateTime atUtc, Guid? actor = null, string? correlationId = null) => Transition(OrderStatus.Submitted, atUtc, actor, OrderChangeSource.System, null, null, correlationId);
-    public void AcceptByMerchant(DateTime atUtc, Guid actor, string? correlationId = null) => Transition(OrderStatus.AcceptedByMerchant, atUtc, actor, OrderChangeSource.Merchant, null, null, correlationId);
-    public void RejectByMerchant(string reasonCode, string? reason, DateTime atUtc, Guid actor, string? correlationId = null) => Transition(OrderStatus.RejectedByMerchant, atUtc, actor, OrderChangeSource.Merchant, reasonCode, reason, correlationId);
-    public void StartPreparing(DateTime atUtc, Guid? actor = null, string? correlationId = null) => Transition(OrderStatus.Preparing, atUtc, actor, OrderChangeSource.Merchant, null, null, correlationId);
-    public void MarkReadyForPickup(DateTime atUtc, Guid? actor = null, string? correlationId = null) => Transition(OrderStatus.ReadyForPickup, atUtc, actor, OrderChangeSource.Merchant, null, null, correlationId);
+    public void AcceptByMerchant(int preparationMinutes, DateTime atUtc, Guid actor, string? correlationId = null)
+    {
+        RequireActor(actor); ValidatePreparationMinutes(preparationMinutes);
+        Transition(OrderStatus.AcceptedByMerchant, atUtc, actor, OrderChangeSource.Merchant, null, null, correlationId);
+        MerchantAcceptedByUserId = actor; EstimatedPreparationMinutes = preparationMinutes; EstimatedReadyAtUtc = atUtc.AddMinutes(preparationMinutes);
+        RaiseDomainEvent(new OrderAcceptedByMerchantDomainEvent(Id.Value, MerchantId, MerchantBranchId, actor, preparationMinutes, EstimatedReadyAtUtc.Value, atUtc));
+    }
+    public void AcceptByMerchant(DateTime atUtc, Guid actor, string? correlationId = null) => AcceptByMerchant(30, atUtc, actor, correlationId);
+    public void RejectByMerchant(MerchantOrderRejectionReason reason, string? note, DateTime atUtc, Guid actor, string? correlationId = null)
+    {
+        RequireActor(actor); if (!Enum.IsDefined(reason) || reason == 0) throw new DomainException("Merchant rejection reason is invalid.");
+        string? normalizedNote = Note(note, OrderRules.ReasonTextMaximumLength);
+        if (reason == MerchantOrderRejectionReason.Other && normalizedNote is null) throw new DomainException("A rejection note is required for Other.");
+        Transition(OrderStatus.RejectedByMerchant, atUtc, actor, OrderChangeSource.Merchant, reason.ToString(), normalizedNote, correlationId);
+        MerchantRejectedByUserId = actor; MerchantRejectionReason = reason; MerchantRejectionNote = normalizedNote;
+        RaiseDomainEvent(new OrderRejectedByMerchantDomainEvent(Id.Value, MerchantId, MerchantBranchId, actor, reason, atUtc));
+    }
+    public void RejectByMerchant(string reasonCode, string? reason, DateTime atUtc, Guid actor, string? correlationId = null)
+    {
+        if (!Enum.TryParse(reasonCode, true, out MerchantOrderRejectionReason parsed)) throw new DomainException("Merchant rejection reason is invalid.");
+        RejectByMerchant(parsed, reason, atUtc, actor, correlationId);
+    }
+    public void UpdatePreparationTime(int preparationMinutes, DateTime atUtc, Guid actor, string? correlationId = null)
+    {
+        RequireUtc(atUtc); RequireActor(actor); ValidatePreparationMinutes(preparationMinutes);
+        if (Status is not (OrderStatus.AcceptedByMerchant or OrderStatus.Preparing) || AcceptedAtUtc is null) throw new DomainException("Preparation time cannot be changed in the current state.");
+        EstimatedPreparationMinutes = preparationMinutes; EstimatedReadyAtUtc = AcceptedAtUtc.Value.AddMinutes(preparationMinutes); Touch(atUtc);
+        RaiseDomainEvent(new OrderPreparationTimeUpdatedDomainEvent(Id.Value, MerchantId, MerchantBranchId, actor, preparationMinutes, EstimatedReadyAtUtc.Value, atUtc));
+    }
+    public void StartPreparing(DateTime atUtc, Guid? actor = null, string? correlationId = null)
+    {
+        Guid actorId = actor ?? throw new DomainException("Merchant actor is required.");
+        Transition(OrderStatus.Preparing, atUtc, actorId, OrderChangeSource.Merchant, null, null, correlationId);
+        RaiseDomainEvent(new OrderPreparationStartedDomainEvent(Id.Value, MerchantId, MerchantBranchId, actorId, atUtc));
+    }
+    public void MarkReadyForPickup(DateTime atUtc, Guid? actor = null, string? correlationId = null)
+    {
+        Guid actorId = actor ?? throw new DomainException("Merchant actor is required.");
+        Transition(OrderStatus.ReadyForPickup, atUtc, actorId, OrderChangeSource.Merchant, null, null, correlationId);
+        RaiseDomainEvent(new OrderReadyForPickupDomainEvent(Id.Value, MerchantId, MerchantBranchId, actorId, atUtc));
+    }
     public void StartDriverSearch(DateTime atUtc, Guid? actor = null, string? correlationId = null) => Transition(OrderStatus.SearchingForDriver, atUtc, actor, OrderChangeSource.Delivery, null, null, correlationId);
     public void AssignDriver(DateTime atUtc, Guid? actor = null, string? correlationId = null) => Transition(OrderStatus.DriverAssigned, atUtc, actor, OrderChangeSource.Delivery, null, null, correlationId);
     public void MarkDriverArrivingToPickup(DateTime atUtc, Guid? actor = null, string? correlationId = null) => Transition(OrderStatus.DriverArrivingToPickup, atUtc, actor, OrderChangeSource.Delivery, null, null, correlationId);
@@ -152,6 +195,9 @@ public sealed class Order : AggregateRoot<OrderId>
     }
     private static void RequireUtc(DateTime value) { if (value.Kind != DateTimeKind.Utc) throw new DomainException("Timestamp must be UTC."); }
     private static void RequireGuid(Guid value, string name) { if (value == Guid.Empty) throw new DomainException($"{name} identifier is required."); }
+    private static void RequireActor(Guid actor) => RequireGuid(actor, "Actor");
+    private static void ValidatePreparationMinutes(int value) { if (value is < OrderRules.PreparationMinutesMinimum or > OrderRules.PreparationMinutesMaximum) throw new DomainException("Preparation time is invalid."); }
+    private void Touch(DateTime atUtc) { UpdatedAtUtc = atUtc; ConcurrencyStamp = Guid.NewGuid(); }
     private static string Required(string value, int max, string name) { string result = value?.Trim() ?? string.Empty; if (result.Length is 0 || result.Length > max) throw new DomainException($"{name} is invalid."); return result; }
     private static string? Note(string? value, int max) { string? result = N(value); if (result?.Length > max) throw new DomainException("Text is too long."); return result; }
     private static string? N(string? value) => string.IsNullOrWhiteSpace(value) ? null : value.Trim();

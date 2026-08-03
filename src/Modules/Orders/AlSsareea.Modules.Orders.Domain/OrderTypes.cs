@@ -38,6 +38,12 @@ public readonly record struct OrderCreationIdempotencyId
     public Guid Value { get; }
     public static OrderCreationIdempotencyId New() => new(Guid.NewGuid());
 }
+public readonly record struct MerchantOrderAuditId
+{
+    public MerchantOrderAuditId(Guid value) { if (value == Guid.Empty) throw new DomainException("Audit identifier is required."); Value = value; }
+    public Guid Value { get; }
+    public static MerchantOrderAuditId New() => new(Guid.NewGuid());
+}
 
 public enum OrderType : short { Restaurant = 1, Store = 2, Parcel = 3 }
 public enum OrderStatus : short
@@ -49,6 +55,7 @@ public enum OrderStatus : short
 }
 public enum OrderChangeSource : short { Customer = 1, Merchant = 2, Operations = 3, System = 4, Payment = 5, Delivery = 6 }
 public enum CancellationActor : short { Customer = 1, Merchant = 2, Operations = 3, System = 4 }
+public enum MerchantOrderRejectionReason : short { ItemUnavailable = 1, StoreTooBusy = 2, ClosingSoon = 3, CannotFulfill = 4, InvalidOrder = 5, Other = 6 }
 
 public static class OrderRules
 {
@@ -61,4 +68,6 @@ public static class OrderRules
     public const int ReasonCodeMaximumLength = 80;
     public const int ReasonTextMaximumLength = 500;
     public const int IdempotencyKeyMaximumLength = 200;
+    public const int PreparationMinutesMinimum = 1;
+    public const int PreparationMinutesMaximum = 240;
 }

@@ -18,7 +18,7 @@ public sealed class OrdersPersistenceTests(PostgresFixture fixture)
     public async Task MigrationCreatesOwnedSchemaTablesAndHistory()
     {
         await using NpgsqlConnection connection = new(fixture.ConnectionString); await connection.OpenAsync();
-        string[] expected = ["orders", "order_items", "order_item_options", "order_status_history", "order_creation_idempotency", "outbox_messages"];
+        string[] expected = ["orders", "order_items", "order_item_options", "order_status_history", "order_operation_idempotency", "merchant_order_audit", "outbox_messages"];
         await using NpgsqlCommand tables = new("SELECT table_name FROM information_schema.tables WHERE table_schema = 'orders' ORDER BY table_name", connection);
         await using NpgsqlDataReader reader = await tables.ExecuteReaderAsync(); List<string> actual = []; while (await reader.ReadAsync()) actual.Add(reader.GetString(0)); await reader.CloseAsync();
         Assert.All(expected, x => Assert.Contains(x, actual));
