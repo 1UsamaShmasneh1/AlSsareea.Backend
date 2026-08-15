@@ -1,0 +1,10 @@
+<Project Sdk="Microsoft.NET.Sdk">
+  <ItemGroup>
+    <ProjectReference Include="..\AlSsareea.Modules.Drivers.Domain\AlSsareea.Modules.Drivers.Domain.csproj" />
+    <ProjectReference Include="..\AlSsareea.Modules.Drivers.Contracts\AlSsareea.Modules.Drivers.Contracts.csproj" />
+    <ProjectReference Include="..\..\..\BuildingBlocks\AlSsareea.BuildingBlocks.Application\AlSsareea.BuildingBlocks.Application.csproj" />
+    <ProjectReference Include="..\..\Identity\AlSsareea.Modules.Identity.Contracts\AlSsareea.Modules.Identity.Contracts.csproj" />
+    <ProjectReference Include="..\..\Maps\AlSsareea.Modules.Maps.Contracts\AlSsareea.Modules.Maps.Contracts.csproj" />
+    <ProjectReference Include="..\..\Media\AlSsareea.Modules.Media.Contracts\AlSsareea.Modules.Media.Contracts.csproj" />
+  </ItemGroup>
+</Project>

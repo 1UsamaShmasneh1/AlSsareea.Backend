@@ -35,6 +35,7 @@ AlSsareea is a multilingual delivery platform. This repository currently contain
 - Never use `Database.EnsureCreated()` or apply migrations automatically in production.
 - Persistence integration tests must use real PostgreSQL/PostGIS through Testcontainers, never EF Core InMemory or SQLite.
 - Module Infrastructure must not access another module's schema or Infrastructure directly.
+- The Drivers module owns driver commercial and operational profiles; live location, dispatch assignments, delivery workflow, and earnings ledgers remain outside it.
 
 ## Languages and presentation
 

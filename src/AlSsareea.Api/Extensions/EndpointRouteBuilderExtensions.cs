@@ -20,6 +20,7 @@ public static class EndpointRouteBuilderExtensions
         app.MapCartEndpoints();
         app.MapOrderEndpoints();
         app.MapMerchantOrderEndpoints();
+        app.MapDriverEndpoints();
         app.MapHub<MerchantOrdersHub>("/hubs/merchant-orders");
         app.MapHealthChecks("/health").WithTags("System");
         app.MapHealthChecks("/health/live", new HealthCheckOptions

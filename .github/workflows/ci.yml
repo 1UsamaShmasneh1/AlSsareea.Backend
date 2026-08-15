@@ -46,3 +46,10 @@ jobs:
           --project ./src/Modules/Orders/AlSsareea.Modules.Orders.Infrastructure/AlSsareea.Modules.Orders.Infrastructure.csproj
           --startup-project ./src/Modules/Orders/AlSsareea.Modules.Orders.Infrastructure/AlSsareea.Modules.Orders.Infrastructure.csproj
           --context OrdersDbContext
+
+      - name: Verify Drivers migration model
+        run: >-
+          dotnet ef migrations has-pending-model-changes
+          --project ./src/Modules/Drivers/AlSsareea.Modules.Drivers.Infrastructure/AlSsareea.Modules.Drivers.Infrastructure.csproj
+          --startup-project ./src/Modules/Drivers/AlSsareea.Modules.Drivers.Infrastructure/AlSsareea.Modules.Drivers.Infrastructure.csproj
+          --context DriversDbContext

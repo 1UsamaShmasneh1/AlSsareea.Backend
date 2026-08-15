@@ -4,6 +4,10 @@
     <IsTestProject>true</IsTestProject>
   </PropertyGroup>
   <ItemGroup>
+    <ProjectReference Include="..\..\src\Modules\Drivers\AlSsareea.Modules.Drivers.Application\AlSsareea.Modules.Drivers.Application.csproj" />
+    <ProjectReference Include="..\..\src\Modules\Drivers\AlSsareea.Modules.Drivers.Contracts\AlSsareea.Modules.Drivers.Contracts.csproj" />
+    <ProjectReference Include="..\..\src\Modules\Drivers\AlSsareea.Modules.Drivers.Domain\AlSsareea.Modules.Drivers.Domain.csproj" />
+    <ProjectReference Include="..\..\src\Modules\Drivers\AlSsareea.Modules.Drivers.Infrastructure\AlSsareea.Modules.Drivers.Infrastructure.csproj" />
     <ProjectReference Include="..\..\src\Modules\Carts\AlSsareea.Modules.Carts.Application\AlSsareea.Modules.Carts.Application.csproj" />
     <ProjectReference Include="..\..\src\Modules\Carts\AlSsareea.Modules.Carts.Contracts\AlSsareea.Modules.Carts.Contracts.csproj" />
     <ProjectReference Include="..\..\src\Modules\Carts\AlSsareea.Modules.Carts.Domain\AlSsareea.Modules.Carts.Domain.csproj" />
