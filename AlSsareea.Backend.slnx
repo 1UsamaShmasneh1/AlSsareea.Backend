@@ -68,6 +68,12 @@
     <Project Path="src/Modules/Orders/AlSsareea.Modules.Orders.Domain/AlSsareea.Modules.Orders.Domain.csproj" />
     <Project Path="src/Modules/Orders/AlSsareea.Modules.Orders.Infrastructure/AlSsareea.Modules.Orders.Infrastructure.csproj" />
   </Folder>
+  <Folder Name="/src/Modules/Drivers/">
+    <Project Path="src/Modules/Drivers/AlSsareea.Modules.Drivers.Application/AlSsareea.Modules.Drivers.Application.csproj" />
+    <Project Path="src/Modules/Drivers/AlSsareea.Modules.Drivers.Contracts/AlSsareea.Modules.Drivers.Contracts.csproj" />
+    <Project Path="src/Modules/Drivers/AlSsareea.Modules.Drivers.Domain/AlSsareea.Modules.Drivers.Domain.csproj" />
+    <Project Path="src/Modules/Drivers/AlSsareea.Modules.Drivers.Infrastructure/AlSsareea.Modules.Drivers.Infrastructure.csproj" />
+  </Folder>
   <Folder Name="/tests/">
     <Project Path="tests/AlSsareea.ArchitectureTests/AlSsareea.ArchitectureTests.csproj" />
     <Project Path="tests/AlSsareea.IntegrationTests/AlSsareea.IntegrationTests.csproj" />

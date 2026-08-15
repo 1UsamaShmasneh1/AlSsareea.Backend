@@ -4,6 +4,10 @@
     <IsTestProject>true</IsTestProject>
   </PropertyGroup>
   <ItemGroup>
+    <ProjectReference Include="..\..\src\Modules\Drivers\AlSsareea.Modules.Drivers.Application\AlSsareea.Modules.Drivers.Application.csproj" />
+    <ProjectReference Include="..\..\src\Modules\Drivers\AlSsareea.Modules.Drivers.Contracts\AlSsareea.Modules.Drivers.Contracts.csproj" />
+    <ProjectReference Include="..\..\src\Modules\Drivers\AlSsareea.Modules.Drivers.Domain\AlSsareea.Modules.Drivers.Domain.csproj" />
+    <ProjectReference Include="..\..\src\Modules\Drivers\AlSsareea.Modules.Drivers.Infrastructure\AlSsareea.Modules.Drivers.Infrastructure.csproj" />
     <ProjectReference Include="..\..\src\Modules\Carts\AlSsareea.Modules.Carts.Infrastructure\AlSsareea.Modules.Carts.Infrastructure.csproj" />
     <ProjectReference Include="..\..\src\Modules\Orders\AlSsareea.Modules.Orders.Application\AlSsareea.Modules.Orders.Application.csproj" />
     <ProjectReference Include="..\..\src\Modules\Orders\AlSsareea.Modules.Orders.Contracts\AlSsareea.Modules.Orders.Contracts.csproj" />
@@ -12,6 +16,7 @@
     <PackageReference Include="coverlet.collector" PrivateAssets="all" />
     <PackageReference Include="Microsoft.AspNetCore.Mvc.Testing" />
     <PackageReference Include="Microsoft.NET.Test.Sdk" />
+    <PackageReference Include="SSH.NET" />
     <PackageReference Include="Testcontainers.PostgreSql" />
     <PackageReference Include="xunit" />
     <PackageReference Include="xunit.runner.visualstudio" PrivateAssets="all" />

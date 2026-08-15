@@ -18,7 +18,8 @@ integer-minor-unit calculations and immutable calculation snapshots. See
 [the Media module](docs/modules/media.md), and
 [the Pricing module](docs/modules/pricing.md), and
 [the Promotions architecture](docs/architecture/promotions.md), and
-[the Orders module](src/Modules/Orders/README.md).
+[the Orders module](src/Modules/Orders/README.md), and
+[the Drivers module](docs/modules/drivers/README.md).
 
 ## Requirements
 
@@ -53,13 +54,13 @@ docker compose down
 
 ## Connection string
 
-Identity, Customers, Maps, Merchants, Catalog, Media, Pricing, Promotions, Carts, and Orders own separate contexts and migration histories while normally
+Identity, Customers, Maps, Merchants, Catalog, Media, Pricing, Promotions, Carts, Orders, and Drivers own separate contexts and migration histories while normally
 using the same PostgreSQL database. Configure `ConnectionStrings:IdentityDatabase`,
 `ConnectionStrings:CustomersDatabase`, `ConnectionStrings:MapsDatabase`,
 `ConnectionStrings:MerchantsDatabase`, `ConnectionStrings:CatalogDatabase`, and
 `ConnectionStrings:MediaDatabase`, `ConnectionStrings:PricingDatabase`, and
 `ConnectionStrings:PromotionsDatabase`, `ConnectionStrings:CartsDatabase`, and
-`ConnectionStrings:OrdersDatabase`.
+`ConnectionStrings:OrdersDatabase`, and `ConnectionStrings:DriversDatabase`.
 `appsettings.Development.json` contains local-only values matching Compose.
 
 ```powershell
@@ -74,6 +75,7 @@ dotnet user-secrets set "ConnectionStrings:MerchantsDatabase" "Host=localhost;Po
 dotnet user-secrets set "ConnectionStrings:PromotionsDatabase" "Host=localhost;Port=5432;Database=alssareea;Username=alssareea;Password=<development-password>" --project src/AlSsareea.Api
 dotnet user-secrets set "ConnectionStrings:CartsDatabase" "Host=localhost;Port=5432;Database=alssareea;Username=alssareea;Password=<development-password>" --project src/AlSsareea.Api
 dotnet user-secrets set "ConnectionStrings:OrdersDatabase" "Host=localhost;Port=5432;Database=alssareea;Username=alssareea;Password=<development-password>" --project src/AlSsareea.Api
+dotnet user-secrets set "ConnectionStrings:DriversDatabase" "Host=localhost;Port=5432;Database=alssareea;Username=alssareea;Password=<development-password>" --project src/AlSsareea.Api
 ```
 
 No production connection string is stored in the repository.
@@ -204,6 +206,7 @@ Future versioned business endpoints will use the `/api/v1` base path. The unvers
 - `src/Modules/Promotions`: Promotion lifecycle, coupons, eligibility, evaluation, funding attribution, and owned persistence.
 - `src/Modules/Carts`: Customer cart lifecycle, configured lines, idempotent mutations, expiration, and authoritative checkout summaries.
 - `src/Modules/Orders`: Immutable order snapshots, lifecycle/history, idempotent creation, optimistic concurrency, and transactional outbox.
+- `src/Modules/Drivers`: Driver profiles, activation, vehicles, documents, service areas, availability, shifts, violations, suspensions, and operational eligibility.
 - `tests`: unit, integration, and architecture tests.
 - `docs`: architecture notes and Architecture Decision Records.
 

@@ -13,6 +13,7 @@ using AlSsareea.Modules.Catalog.Application;
 using AlSsareea.Modules.Catalog.Infrastructure;
 using AlSsareea.Modules.Customers.Application;
 using AlSsareea.Modules.Customers.Infrastructure;
+using AlSsareea.Modules.Drivers.Infrastructure;
 using AlSsareea.Modules.Identity.Application;
 using AlSsareea.Modules.Identity.Infrastructure;
 using AlSsareea.Modules.Maps.Application;
@@ -108,6 +109,7 @@ public static class ServiceCollectionExtensions
             AddFixedWindow(options, "carts-write", 60, 60);
             AddFixedWindow(options, "merchant-orders-read", 240, 60);
             AddFixedWindow(options, "merchant-orders-write", 120, 60);
+            AddFixedWindow(options, "drivers-write", 60, 60);
         });
 
         services.ConfigureHttpJsonOptions(options =>
@@ -142,6 +144,7 @@ public static class ServiceCollectionExtensions
         services.AddPromotionsInfrastructure(configuration);
         services.AddCartsInfrastructure(configuration);
         services.AddOrdersInfrastructure(configuration);
+        services.AddDriversInfrastructure(configuration);
         services.AddSingleton<IMerchantOrderRealtimePublisher, MerchantOrderRealtimePublisher>();
 
         return services;

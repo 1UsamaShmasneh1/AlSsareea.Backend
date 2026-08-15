@@ -51,3 +51,8 @@ trusted, freshly validated checkout summary into immutable relational snapshots,
 explicit order lifecycle and append-only history, and atomically persists creation
 idempotency and integration events in its own outbox. Cart conversion is idempotent and no
 distributed transaction or cross-schema foreign key is used.
+
+Phase 13 adds the [Drivers module](../modules/drivers/README.md). Drivers owns the permanent
+commercial and operational driver profile in the `drivers` schema. `DriverId` is independent
+from Identity `UserId`; Identity, Maps service areas, and Media assets are consumed through
+public contracts only. Tracking, dispatching, delivery, and financial ledgers remain separate.
