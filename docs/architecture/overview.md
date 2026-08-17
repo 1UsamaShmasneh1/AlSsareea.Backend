@@ -56,3 +56,8 @@ Phase 13 adds the [Drivers module](../modules/drivers/README.md). Drivers owns t
 commercial and operational driver profile in the `drivers` schema. `DriverId` is independent
 from Identity `UserId`; Identity, Maps service areas, and Media assets are consumed through
 public contracts only. Tracking, dispatching, delivery, and financial ledgers remain separate.
+
+Phase 14 adds the [Tracking module](../modules/tracking/README.md). Tracking owns immutable
+GPS history and a concurrency-safe latest projection in PostGIS. Drivers eligibility is consumed
+through Contracts, SignalR remains an ephemeral post-commit channel, and customer visibility is
+order-context-only behind a deny-by-default contract pending Delivery in Phase 15.

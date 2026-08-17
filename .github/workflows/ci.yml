@@ -53,3 +53,10 @@ jobs:
           --project ./src/Modules/Drivers/AlSsareea.Modules.Drivers.Infrastructure/AlSsareea.Modules.Drivers.Infrastructure.csproj
           --startup-project ./src/Modules/Drivers/AlSsareea.Modules.Drivers.Infrastructure/AlSsareea.Modules.Drivers.Infrastructure.csproj
           --context DriversDbContext
+
+      - name: Verify Tracking migration model
+        run: >-
+          dotnet ef migrations has-pending-model-changes
+          --project ./src/Modules/Tracking/AlSsareea.Modules.Tracking.Infrastructure/AlSsareea.Modules.Tracking.Infrastructure.csproj
+          --startup-project ./src/Modules/Tracking/AlSsareea.Modules.Tracking.Infrastructure/AlSsareea.Modules.Tracking.Infrastructure.csproj
+          --context TrackingDbContext

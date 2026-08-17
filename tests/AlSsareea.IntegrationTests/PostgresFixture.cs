@@ -8,6 +8,7 @@ using AlSsareea.Modules.Merchants.Infrastructure.Persistence;
 using AlSsareea.Modules.Orders.Infrastructure.Persistence;
 using AlSsareea.Modules.Pricing.Infrastructure.Persistence;
 using AlSsareea.Modules.Promotions.Infrastructure.Persistence;
+using AlSsareea.Modules.Tracking.Infrastructure.Persistence;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.DependencyInjection;
 using Testcontainers.PostgreSql;
@@ -52,6 +53,8 @@ public sealed class PostgresFixture : IAsyncLifetime
         await ordersDbContext.Database.MigrateAsync();
         DriversDbContext driversDbContext = scope.ServiceProvider.GetRequiredService<DriversDbContext>();
         await driversDbContext.Database.MigrateAsync();
+        TrackingDbContext trackingDbContext = scope.ServiceProvider.GetRequiredService<TrackingDbContext>();
+        await trackingDbContext.Database.MigrateAsync();
     }
 
     public async Task DisposeAsync()

@@ -19,7 +19,8 @@ integer-minor-unit calculations and immutable calculation snapshots. See
 [the Pricing module](docs/modules/pricing.md), and
 [the Promotions architecture](docs/architecture/promotions.md), and
 [the Orders module](src/Modules/Orders/README.md), and
-[the Drivers module](docs/modules/drivers/README.md).
+[the Drivers module](docs/modules/drivers/README.md), and
+[the Tracking module](docs/modules/tracking/README.md).
 
 ## Requirements
 
@@ -54,13 +55,13 @@ docker compose down
 
 ## Connection string
 
-Identity, Customers, Maps, Merchants, Catalog, Media, Pricing, Promotions, Carts, Orders, and Drivers own separate contexts and migration histories while normally
+Identity, Customers, Maps, Merchants, Catalog, Media, Pricing, Promotions, Carts, Orders, Drivers, and Tracking own separate contexts and migration histories while normally
 using the same PostgreSQL database. Configure `ConnectionStrings:IdentityDatabase`,
 `ConnectionStrings:CustomersDatabase`, `ConnectionStrings:MapsDatabase`,
 `ConnectionStrings:MerchantsDatabase`, `ConnectionStrings:CatalogDatabase`, and
 `ConnectionStrings:MediaDatabase`, `ConnectionStrings:PricingDatabase`, and
 `ConnectionStrings:PromotionsDatabase`, `ConnectionStrings:CartsDatabase`, and
-`ConnectionStrings:OrdersDatabase`, and `ConnectionStrings:DriversDatabase`.
+`ConnectionStrings:OrdersDatabase`, `ConnectionStrings:DriversDatabase`, and `ConnectionStrings:TrackingDatabase`.
 `appsettings.Development.json` contains local-only values matching Compose.
 
 ```powershell
@@ -207,6 +208,7 @@ Future versioned business endpoints will use the `/api/v1` base path. The unvers
 - `src/Modules/Carts`: Customer cart lifecycle, configured lines, idempotent mutations, expiration, and authoritative checkout summaries.
 - `src/Modules/Orders`: Immutable order snapshots, lifecycle/history, idempotent creation, optimistic concurrency, and transactional outbox.
 - `src/Modules/Drivers`: Driver profiles, activation, vehicles, documents, service areas, availability, shifts, violations, suspensions, and operational eligibility.
+- `src/Modules/Tracking`: Driver GPS ingestion, immutable PostGIS history, latest projection, offline synchronization, privacy, and realtime hints.
 - `tests`: unit, integration, and architecture tests.
 - `docs`: architecture notes and Architecture Decision Records.
 
@@ -233,3 +235,5 @@ Promotions owns schema `promotions`, its own migration history, promotion, redem
 and audit tables, and no cross-schema foreign keys.
 Orders owns schema `orders`, its own migration history, relational order snapshots,
 creation idempotency, and an outbox; it has no cross-schema foreign keys or cascade deletes.
+Tracking owns schema `tracking`, immutable location history and a conditional latest projection;
+it has no cross-schema foreign keys, per-ping audit, or outbox.

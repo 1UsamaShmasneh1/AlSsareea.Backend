@@ -74,6 +74,12 @@
     <Project Path="src/Modules/Drivers/AlSsareea.Modules.Drivers.Domain/AlSsareea.Modules.Drivers.Domain.csproj" />
     <Project Path="src/Modules/Drivers/AlSsareea.Modules.Drivers.Infrastructure/AlSsareea.Modules.Drivers.Infrastructure.csproj" />
   </Folder>
+  <Folder Name="/src/Modules/Tracking/">
+    <Project Path="src/Modules/Tracking/AlSsareea.Modules.Tracking.Application/AlSsareea.Modules.Tracking.Application.csproj" />
+    <Project Path="src/Modules/Tracking/AlSsareea.Modules.Tracking.Contracts/AlSsareea.Modules.Tracking.Contracts.csproj" />
+    <Project Path="src/Modules/Tracking/AlSsareea.Modules.Tracking.Domain/AlSsareea.Modules.Tracking.Domain.csproj" />
+    <Project Path="src/Modules/Tracking/AlSsareea.Modules.Tracking.Infrastructure/AlSsareea.Modules.Tracking.Infrastructure.csproj" />
+  </Folder>
   <Folder Name="/tests/">
     <Project Path="tests/AlSsareea.ArchitectureTests/AlSsareea.ArchitectureTests.csproj" />
     <Project Path="tests/AlSsareea.IntegrationTests/AlSsareea.IntegrationTests.csproj" />
