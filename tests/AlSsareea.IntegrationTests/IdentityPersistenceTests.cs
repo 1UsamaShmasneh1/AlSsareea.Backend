@@ -96,8 +96,14 @@ public sealed class IdentityPersistenceTests(PostgresFixture fixture)
     public async Task EveryIdentityForeignKeyUsesRestrictAndOnlyOwnedModuleSchemasAreCreated()
     {
         await using AsyncServiceScope scope = fixture.ApiFactory.Services.CreateAsyncScope(); IdentityDbContext db = scope.ServiceProvider.GetRequiredService<IdentityDbContext>();
-        long cascades = await ScalarLongAsync(db, "SELECT count(*) FROM pg_constraint c JOIN pg_namespace n ON n.oid=c.connamespace WHERE n.nspname='identity' AND c.contype='f' AND c.confdeltype='c'"); Assert.Equal(0, cascades);
-        List<string> schemas = await QueryStringsAsync(db, "SELECT schema_name FROM information_schema.schemata WHERE schema_name NOT IN ('identity','customers','merchants','catalog','media','pricing','promotions','carts','orders','drivers','public','information_schema','pg_catalog','pg_toast','topology','tiger','tiger_data') AND schema_name NOT LIKE 'pg_temp_%' AND schema_name NOT LIKE 'pg_toast_temp_%'"); Assert.Empty(schemas);
+        long nonRestrictingForeignKeys = await ScalarLongAsync(db, "SELECT count(*) FROM pg_constraint c JOIN pg_namespace source_schema ON source_schema.oid=c.connamespace WHERE source_schema.nspname='identity' AND c.contype='f' AND c.confdeltype<>'r'");
+        Assert.Equal(0, nonRestrictingForeignKeys);
+
+        long crossSchemaForeignKeys = await ScalarLongAsync(db, "SELECT count(*) FROM pg_constraint c JOIN pg_namespace source_schema ON source_schema.oid=c.connamespace JOIN pg_class target_table ON target_table.oid=c.confrelid JOIN pg_namespace target_schema ON target_schema.oid=target_table.relnamespace WHERE source_schema.nspname='identity' AND c.contype='f' AND target_schema.nspname<>'identity'");
+        Assert.Equal(0, crossSchemaForeignKeys);
+
+        List<string> unexpectedSchemas = await QueryStringsAsync(db, "SELECT schema_name FROM information_schema.schemata WHERE schema_name NOT IN ('identity','customers','maps','merchants','catalog','media','pricing','promotions','carts','orders','drivers','tracking','public','information_schema','pg_catalog','pg_toast','topology','tiger','tiger_data') AND schema_name NOT LIKE 'pg_temp_%' AND schema_name NOT LIKE 'pg_toast_temp_%'");
+        Assert.Empty(unexpectedSchemas);
     }
 
     private static User NewUser(Email? email = null, PhoneNumber? phone = null) { UserId id = UserId.New(); return User.Create(id, UserType.Customer, email ?? new Email($"person-{id.Value:N}@example.com"), phone, new PasswordHash("argon2id$v=19$integration-test-hash"), Now); }

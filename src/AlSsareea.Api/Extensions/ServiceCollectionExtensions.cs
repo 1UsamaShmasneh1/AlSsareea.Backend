@@ -26,6 +26,8 @@ using AlSsareea.Modules.Orders.Infrastructure;
 using AlSsareea.Modules.Pricing.Application;
 using AlSsareea.Modules.Pricing.Infrastructure;
 using AlSsareea.Modules.Promotions.Infrastructure;
+using AlSsareea.Modules.Tracking.Application;
+using AlSsareea.Modules.Tracking.Infrastructure;
 using Microsoft.AspNetCore.Authentication.JwtBearer;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Localization;
@@ -45,6 +47,7 @@ public static class ServiceCollectionExtensions
         services.AddOpenApi();
         services.AddHealthChecks();
         JwtOptions jwt = configuration.GetSection(JwtOptions.SectionName).Get<JwtOptions>() ?? new JwtOptions();
+        TrackingOptions tracking = configuration.GetSection(TrackingOptions.SectionName).Get<TrackingOptions>() ?? new TrackingOptions();
         services.AddAuthentication(JwtBearerDefaults.AuthenticationScheme).AddJwtBearer(options =>
         {
             options.MapInboundClaims = false;
@@ -69,7 +72,7 @@ public static class ServiceCollectionExtensions
                 OnMessageReceived = context =>
                 {
                     string token = context.Request.Query["access_token"].ToString();
-                    if (!string.IsNullOrWhiteSpace(token) && context.HttpContext.Request.Path.StartsWithSegments("/hubs/merchant-orders")) context.Token = token;
+                    if (!string.IsNullOrWhiteSpace(token) && (context.HttpContext.Request.Path.StartsWithSegments("/hubs/merchant-orders") || context.HttpContext.Request.Path.StartsWithSegments("/hubs/tracking"))) context.Token = token;
                     return Task.CompletedTask;
                 },
                 OnTokenValidated = async context =>
@@ -110,6 +113,7 @@ public static class ServiceCollectionExtensions
             AddFixedWindow(options, "merchant-orders-read", 240, 60);
             AddFixedWindow(options, "merchant-orders-write", 120, 60);
             AddFixedWindow(options, "drivers-write", 60, 60);
+            AddFixedWindow(options, "tracking-ingestion", Math.Max(1, tracking.IngestionPermitLimit), 60);
         });
 
         services.ConfigureHttpJsonOptions(options =>
@@ -145,6 +149,8 @@ public static class ServiceCollectionExtensions
         services.AddCartsInfrastructure(configuration);
         services.AddOrdersInfrastructure(configuration);
         services.AddDriversInfrastructure(configuration);
+        services.AddTrackingInfrastructure(configuration);
+        services.AddScoped<ILocationRealtimePublisher, TrackingRealtimePublisher>();
         services.AddSingleton<IMerchantOrderRealtimePublisher, MerchantOrderRealtimePublisher>();
 
         return services;
@@ -152,7 +158,7 @@ public static class ServiceCollectionExtensions
 
     private static void AddFixedWindow(RateLimiterOptions options, string name, int limit, int windowSeconds) => options.AddPolicy(name, context =>
     {
-        string ip = context.Connection.RemoteIpAddress?.ToString() ?? "unknown"; string device = context.Request.Headers["X-Device-Identifier"].ToString(); string principal = context.User.FindFirst("sid")?.Value ?? "anonymous";
+        string ip = context.Connection.RemoteIpAddress?.ToString() ?? "unknown"; string device = context.Request.Headers["X-Device-Identifier"].ToString(); string principal = context.User.FindFirst(JwtRegisteredClaimNames.Sub)?.Value ?? context.User.FindFirst("sid")?.Value ?? "anonymous";
         string partition = Convert.ToHexStringLower(System.Security.Cryptography.SHA256.HashData(Encoding.UTF8.GetBytes(ip + ":" + principal + ":" + device.Trim().ToLowerInvariant())));
         return RateLimitPartition.GetFixedWindowLimiter(partition, _ => new FixedWindowRateLimiterOptions { PermitLimit = limit, Window = TimeSpan.FromSeconds(windowSeconds), QueueLimit = 0, AutoReplenishment = true });
     });
