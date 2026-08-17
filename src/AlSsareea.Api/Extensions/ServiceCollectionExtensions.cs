@@ -13,6 +13,7 @@ using AlSsareea.Modules.Catalog.Application;
 using AlSsareea.Modules.Catalog.Infrastructure;
 using AlSsareea.Modules.Customers.Application;
 using AlSsareea.Modules.Customers.Infrastructure;
+using AlSsareea.Modules.Delivery.Infrastructure;
 using AlSsareea.Modules.Drivers.Infrastructure;
 using AlSsareea.Modules.Identity.Application;
 using AlSsareea.Modules.Identity.Infrastructure;
@@ -150,6 +151,7 @@ public static class ServiceCollectionExtensions
         services.AddOrdersInfrastructure(configuration);
         services.AddDriversInfrastructure(configuration);
         services.AddTrackingInfrastructure(configuration);
+        services.AddDeliveryInfrastructure(configuration);
         services.AddScoped<ILocationRealtimePublisher, TrackingRealtimePublisher>();
         services.AddSingleton<IMerchantOrderRealtimePublisher, MerchantOrderRealtimePublisher>();
 

@@ -39,7 +39,11 @@ The authenticated hub is `/hubs/tracking`. Clients can call only `SubscribeSelf`
 
 Broadcast occurs only after the database transaction commits. SignalR is an ephemeral hint, never the source of truth. After reconnect, clients fetch REST latest and then resubscribe.
 
-Customer visibility never accepts a driver identifier. Because Delivery and assignment do not exist until Phase 15, the default visibility provider denies all order tracking. Phase 15 must replace it with an order/delivery-context implementation.
+Customer visibility never accepts a driver identifier. The default provider still denies all access
+when Tracking is composed alone. In the API composition root, Delivery replaces it with an
+order-context provider that requires the authenticated customer owner, an assigned driver, and a
+visible delivery state (`PickedUp`, `InTransit`, or `ArrivedAtDropOff`). Terminal, pre-pickup, and
+unassigned deliveries are not visible. Tracking still reads no Delivery tables directly.
 
 ## Testing and migrations
 

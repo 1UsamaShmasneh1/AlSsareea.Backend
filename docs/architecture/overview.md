@@ -60,4 +60,11 @@ public contracts only. Tracking, dispatching, delivery, and financial ledgers re
 Phase 14 adds the [Tracking module](../modules/tracking/README.md). Tracking owns immutable
 GPS history and a concurrency-safe latest projection in PostGIS. Drivers eligibility is consumed
 through Contracts, SignalR remains an ephemeral post-commit channel, and customer visibility is
-order-context-only behind a deny-by-default contract pending Delivery in Phase 15.
+order-context-only behind a deny-by-default contract.
+
+Phase 15 adds the [Delivery module](../modules/delivery/README.md). Delivery owns execution
+state after an order is ready, validates the Orders snapshot and Drivers eligibility through
+public Contracts, stores immutable pickup/drop-off snapshots and append-only business history,
+and emits integration facts transactionally through its outbox. Delivery replaces Tracking's
+deny-all visibility provider with an ownership- and state-aware implementation; Tracking remains
+the sole owner of GPS history, latest-location projection, and realtime transport.

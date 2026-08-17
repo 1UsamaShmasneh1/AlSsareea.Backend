@@ -13,6 +13,11 @@ public interface IOrderCustomerSnapshotProvider
     Task<OrderCustomerSnapshotContract?> GetAsync(Guid userId, Guid addressId, CancellationToken cancellationToken = default);
 }
 
+public interface ICustomerIdentityProvider
+{
+    Task<Guid?> GetUserIdAsync(Guid customerId, CancellationToken cancellationToken = default);
+}
+
 public sealed record CreateCustomerRequest(string FirstName, string LastName, DateOnly? DateOfBirth);
 public sealed record UpdateCustomerRequest(string FirstName, string LastName, DateOnly? DateOfBirth, Guid ConcurrencyStamp);
 public sealed record ChangeCustomerStatusRequest(short Status, string? Reason, Guid ConcurrencyStamp);
