@@ -74,6 +74,18 @@ public sealed record MerchantOrderRealtimeEvent(
     string EventName, Guid OrderId, string OrderNumber, Guid MerchantId, Guid? BranchId, short Status,
     DateTime UpdatedAtUtc, int? EstimatedPreparationMinutes, DateTime? EstimatedReadyAtUtc);
 
+public sealed record DeliveryOrderSnapshot(
+    Guid OrderId, Guid CustomerId, Guid MerchantId, Guid? BranchId, short OrderType, short Status, bool IsEligible,
+    string PickupAddress, string? PickupContactName, string? PickupPhoneNumber, string? PickupInstructions,
+    double? PickupLatitude, double? PickupLongitude, Guid DropOffAddressId, string DropOffAddress,
+    string RecipientName, string? RecipientPhoneNumber, string? DropOffFloor, string? DropOffInstructions,
+    double? DropOffLatitude, double? DropOffLongitude);
+
+public interface IDeliveryOrderSnapshotProvider
+{
+    Task<DeliveryOrderSnapshot?> GetAsync(Guid orderId, CancellationToken cancellationToken = default);
+}
+
 public sealed record OrderCreatedIntegrationEvent(Guid Id, int Version, Guid OrderId, string OrderNumber, Guid CustomerId, Guid MerchantId, Guid? BranchId, Guid SourceCartId, short Status, long TotalMinor, string Currency, DateTime OccurredAtUtc) : AlSsareea.BuildingBlocks.Contracts.IIntegrationEvent;
 public sealed record OrderCancelledIntegrationEvent(Guid Id, int Version, Guid OrderId, Guid CustomerId, Guid MerchantId, short PreviousStatus, short Actor, string ReasonCode, DateTime OccurredAtUtc) : AlSsareea.BuildingBlocks.Contracts.IIntegrationEvent;
 public sealed record MerchantOrderChangedIntegrationEvent(
