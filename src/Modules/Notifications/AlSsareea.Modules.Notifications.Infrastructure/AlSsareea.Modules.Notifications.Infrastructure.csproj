@@ -1,0 +1,21 @@
+<Project Sdk="Microsoft.NET.Sdk">
+  <ItemGroup>
+    <ProjectReference Include="..\AlSsareea.Modules.Notifications.Application\AlSsareea.Modules.Notifications.Application.csproj" />
+    <ProjectReference Include="..\AlSsareea.Modules.Notifications.Domain\AlSsareea.Modules.Notifications.Domain.csproj" />
+    <ProjectReference Include="..\AlSsareea.Modules.Notifications.Contracts\AlSsareea.Modules.Notifications.Contracts.csproj" />
+    <ProjectReference Include="..\..\Customers\AlSsareea.Modules.Customers.Contracts\AlSsareea.Modules.Customers.Contracts.csproj" />
+    <ProjectReference Include="..\..\Merchants\AlSsareea.Modules.Merchants.Contracts\AlSsareea.Modules.Merchants.Contracts.csproj" />
+    <ProjectReference Include="..\..\Drivers\AlSsareea.Modules.Drivers.Contracts\AlSsareea.Modules.Drivers.Contracts.csproj" />
+    <ProjectReference Include="..\..\Delivery\AlSsareea.Modules.Delivery.Contracts\AlSsareea.Modules.Delivery.Contracts.csproj" />
+    <ProjectReference Include="..\..\Orders\AlSsareea.Modules.Orders.Contracts\AlSsareea.Modules.Orders.Contracts.csproj" />
+    <ProjectReference Include="..\..\Dispatching\AlSsareea.Modules.Dispatching.Contracts\AlSsareea.Modules.Dispatching.Contracts.csproj" />
+  </ItemGroup>
+  <ItemGroup>
+    <FrameworkReference Include="Microsoft.AspNetCore.App" />
+    <PackageReference Include="Microsoft.EntityFrameworkCore" />
+    <PackageReference Include="Microsoft.EntityFrameworkCore.Design"><PrivateAssets>all</PrivateAssets><IncludeAssets>runtime; build; native; contentfiles; analyzers; buildtransitive</IncludeAssets></PackageReference>
+    <PackageReference Include="Microsoft.Extensions.Diagnostics.HealthChecks.EntityFrameworkCore" />
+    <PackageReference Include="Npgsql.EntityFrameworkCore.PostgreSQL" />
+    <PackageReference Include="EFCore.NamingConventions" />
+  </ItemGroup>
+</Project>

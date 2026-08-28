@@ -1,5 +1,8 @@
 namespace AlSsareea.Modules.Merchants.Contracts;
 
+public sealed record MerchantNotificationRecipient(Guid UserId, string Language);
+public interface IMerchantNotificationRecipientProvider { Task<IReadOnlyList<MerchantNotificationRecipient>> GetAsync(Guid merchantId, Guid? branchId, CancellationToken cancellationToken = default); }
+
 public sealed record CreateMerchantRequest(string LegalName, string DisplayName, string? Description, string? RegistrationNumber, string? TaxNumber, string Email, string PhoneNumber, Guid OwnerUserId);
 public sealed record UpdateMerchantRequest(string LegalName, string DisplayName, string? Description, string? RegistrationNumber, string? TaxNumber, string Email, string PhoneNumber, Guid ConcurrencyStamp);
 public sealed record ReasonRequest(string Reason, Guid ConcurrencyStamp);

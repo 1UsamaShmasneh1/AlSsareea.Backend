@@ -1,0 +1,7 @@
+<Project Sdk="Microsoft.NET.Sdk">
+  <ItemGroup>
+    <ProjectReference Include="..\AlSsareea.Modules.Notifications.Domain\AlSsareea.Modules.Notifications.Domain.csproj" />
+    <ProjectReference Include="..\AlSsareea.Modules.Notifications.Contracts\AlSsareea.Modules.Notifications.Contracts.csproj" />
+    <ProjectReference Include="..\..\..\BuildingBlocks\AlSsareea.BuildingBlocks.Application\AlSsareea.BuildingBlocks.Application.csproj" />
+  </ItemGroup>
+</Project>

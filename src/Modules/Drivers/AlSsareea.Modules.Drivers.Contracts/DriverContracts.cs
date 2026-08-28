@@ -2,6 +2,9 @@ using AlSsareea.BuildingBlocks.Contracts;
 
 namespace AlSsareea.Modules.Drivers.Contracts;
 
+public sealed record DriverNotificationRecipient(Guid UserId, string Language);
+public interface IDriverNotificationRecipientProvider { Task<DriverNotificationRecipient?> GetAsync(Guid driverId, CancellationToken cancellationToken = default); }
+
 public static class DriverPermissions
 {
     public const string ProfileReadSelf = "drivers.profile.read.self";
