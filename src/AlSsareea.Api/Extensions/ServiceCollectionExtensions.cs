@@ -14,6 +14,7 @@ using AlSsareea.Modules.Catalog.Infrastructure;
 using AlSsareea.Modules.Customers.Application;
 using AlSsareea.Modules.Customers.Infrastructure;
 using AlSsareea.Modules.Delivery.Infrastructure;
+using AlSsareea.Modules.Dispatching.Infrastructure;
 using AlSsareea.Modules.Drivers.Infrastructure;
 using AlSsareea.Modules.Identity.Application;
 using AlSsareea.Modules.Identity.Infrastructure;
@@ -115,6 +116,7 @@ public static class ServiceCollectionExtensions
             AddFixedWindow(options, "merchant-orders-write", 120, 60);
             AddFixedWindow(options, "drivers-write", 60, 60);
             AddFixedWindow(options, "tracking-ingestion", Math.Max(1, tracking.IngestionPermitLimit), 60);
+            AddFixedWindow(options, "dispatching-write", 120, 60);
         });
 
         services.ConfigureHttpJsonOptions(options =>
@@ -152,6 +154,7 @@ public static class ServiceCollectionExtensions
         services.AddDriversInfrastructure(configuration);
         services.AddTrackingInfrastructure(configuration);
         services.AddDeliveryInfrastructure(configuration);
+        services.AddDispatchingInfrastructure(configuration);
         services.AddScoped<ILocationRealtimePublisher, TrackingRealtimePublisher>();
         services.AddSingleton<IMerchantOrderRealtimePublisher, MerchantOrderRealtimePublisher>();
 

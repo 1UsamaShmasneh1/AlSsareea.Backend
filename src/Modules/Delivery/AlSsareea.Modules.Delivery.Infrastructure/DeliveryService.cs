@@ -23,9 +23,28 @@ internal sealed class DeliveryService(
     IDriverOperationalSnapshotProvider operationalDrivers,
     IMediaAssetLookup media,
     IDeliveryPinProtector pins,
-    IClock clock) : IDeliveryService
+    IClock clock) : IDeliveryService, IDispatchDeliveryProvider
 {
     private static readonly JsonSerializerOptions JsonOptions = new(JsonSerializerDefaults.Web);
+
+    public async Task<DispatchDeliverySnapshot?> GetAsync(Guid deliveryId, CancellationToken ct = default)
+    {
+        DeliveryAggregate? delivery = await SafeGet(deliveryId, true, ct);
+        return delivery is null ? null : new(delivery.Id.Value, delivery.OrderId, delivery.MerchantId, delivery.BranchId, (short)delivery.Status, delivery.DriverId, delivery.Pickup.Latitude, delivery.Pickup.Longitude);
+    }
+
+    public async Task<DispatchAssignmentResult> AssignAsync(Guid deliveryId, Guid driverId, Guid assignmentId, CancellationToken ct = default)
+    {
+        if (deliveryId == Guid.Empty || driverId == Guid.Empty || assignmentId == Guid.Empty) return new(DispatchAssignmentStatus.Invalid, null, DeliveryErrorCodes.InvalidRequest);
+        DeliveryAggregate? delivery = await SafeGet(deliveryId, false, ct); if (delivery is null) return new(DispatchAssignmentStatus.NotFound, null, DeliveryErrorCodes.NotFound);
+        if (delivery.DriverId.HasValue) return delivery.DriverId == driverId ? new(DispatchAssignmentStatus.AlreadyApplied, driverId) : new(DispatchAssignmentStatus.Conflict, delivery.DriverId, DeliveryErrorCodes.ConcurrencyConflict);
+        DriverEligibilitySnapshot? driver = await drivers.GetAsync(driverId, ct); if (driver is null || !driver.IsActive || !driver.IsApproved || driver.HasActiveSuspension || driver.AvailabilityStatus is not (2 or 3) || driver.CurrentLoad >= driver.MaximumCapacity) return new(DispatchAssignmentStatus.Invalid, null, DeliveryErrorCodes.DriverIneligible);
+        DeliveryStatus old = delivery.Status; DateTime now = clock.UtcNow;
+        try { delivery.Assign(driverId, now); } catch (DomainException) { return new(DispatchAssignmentStatus.Invalid, null, DeliveryErrorCodes.InvalidTransition); }
+        string hash = Hash(assignmentId.ToString("N")); DeliveryAuditEntry audit = new(assignmentId, delivery.Id, "dispatch.assign", old, delivery.Status, now, null, hash, null);
+        IIntegrationEvent[] events = [new DeliveryDriverAssignedIntegrationEvent(Guid.NewGuid(), 1, delivery.Id.Value, delivery.OrderId, driverId, now)];
+        return await repository.SaveOperationAsync(delivery, assignmentId, "dispatch.assign", hash, Hash(driverId.ToString("N")), audit, events, ct) ? new(DispatchAssignmentStatus.Applied, driverId) : new(DispatchAssignmentStatus.Conflict, null, DeliveryErrorCodes.ConcurrencyConflict);
+    }
 
     public async Task<DeliveryOperationResult<DeliveryCreatedResponse>> CreateAsync(DeliveryActor actor, CreateDeliveryRequest request, string idempotencyKey, CancellationToken ct)
     {

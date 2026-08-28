@@ -1,0 +1,20 @@
+<Project Sdk="Microsoft.NET.Sdk">
+  <ItemGroup>
+    <ProjectReference Include="..\AlSsareea.Modules.Dispatching.Application\AlSsareea.Modules.Dispatching.Application.csproj" />
+    <ProjectReference Include="..\AlSsareea.Modules.Dispatching.Domain\AlSsareea.Modules.Dispatching.Domain.csproj" />
+    <ProjectReference Include="..\AlSsareea.Modules.Dispatching.Contracts\AlSsareea.Modules.Dispatching.Contracts.csproj" />
+    <ProjectReference Include="..\..\Drivers\AlSsareea.Modules.Drivers.Contracts\AlSsareea.Modules.Drivers.Contracts.csproj" />
+    <ProjectReference Include="..\..\Tracking\AlSsareea.Modules.Tracking.Contracts\AlSsareea.Modules.Tracking.Contracts.csproj" />
+    <ProjectReference Include="..\..\Maps\AlSsareea.Modules.Maps.Contracts\AlSsareea.Modules.Maps.Contracts.csproj" />
+    <ProjectReference Include="..\..\Delivery\AlSsareea.Modules.Delivery.Contracts\AlSsareea.Modules.Delivery.Contracts.csproj" />
+    <ProjectReference Include="..\..\..\BuildingBlocks\AlSsareea.BuildingBlocks.Application\AlSsareea.BuildingBlocks.Application.csproj" />
+  </ItemGroup>
+  <ItemGroup>
+    <PackageReference Include="Microsoft.EntityFrameworkCore" />
+    <PackageReference Include="Microsoft.EntityFrameworkCore.Design"><PrivateAssets>all</PrivateAssets><IncludeAssets>runtime; build; native; contentfiles; analyzers; buildtransitive</IncludeAssets></PackageReference>
+    <PackageReference Include="Microsoft.Extensions.Diagnostics.HealthChecks.EntityFrameworkCore" />
+    <PackageReference Include="Microsoft.Extensions.Options.ConfigurationExtensions" />
+    <PackageReference Include="Npgsql.EntityFrameworkCore.PostgreSQL" />
+    <PackageReference Include="EFCore.NamingConventions" />
+  </ItemGroup>
+</Project>

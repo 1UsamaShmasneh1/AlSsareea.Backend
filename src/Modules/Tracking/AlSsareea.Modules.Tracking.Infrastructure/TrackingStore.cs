@@ -8,7 +8,7 @@ using Npgsql;
 
 namespace AlSsareea.Modules.Tracking.Infrastructure;
 
-internal sealed class TrackingStore(TrackingDbContext db) : ITrackingStore
+internal sealed class TrackingStore(TrackingDbContext db) : ITrackingStore, IDispatchLocationProvider
 {
     public Task<DriverLatestLocation?> GetLatestEntityAsync(Guid driverId, CancellationToken ct) => db.DriverLatestLocations.AsNoTracking().SingleOrDefaultAsync(x => x.DriverId == driverId, ct);
     public async Task<StoreLocationResult> StoreAsync(DriverLocation location, bool promoteLatest, CancellationToken ct)
@@ -47,6 +47,11 @@ internal sealed class TrackingStore(TrackingDbContext db) : ITrackingStore
     public async Task<DriverLocationResponse?> GetLatestAsync(Guid driverId, CancellationToken ct)
     {
         DriverLatestLocation? value = await db.DriverLatestLocations.AsNoTracking().SingleOrDefaultAsync(x => x.DriverId == driverId, ct); return value is null ? null : Map(value);
+    }
+    async Task<DispatchDriverLocation?> IDispatchLocationProvider.GetLatestAsync(Guid driverId, CancellationToken cancellationToken)
+    {
+        DriverLocationResponse? value = await GetLatestAsync(driverId, cancellationToken);
+        return value is null ? null : new(value.DriverId, value.Latitude, value.Longitude, value.RecordedAtUtc, value.AccuracyMeters);
     }
     public async Task<DriverLocationHistoryResponse> GetHistoryAsync(Guid driverId, DateTime fromUtc, DateTime toUtc, int page, int pageSize, CancellationToken ct)
     {

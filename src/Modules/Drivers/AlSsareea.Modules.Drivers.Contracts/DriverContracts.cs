@@ -54,6 +54,8 @@ public sealed record DriverQuery(short? Status, short? ActivationStatus, short? 
 public sealed record DriverEligibilitySnapshot(Guid DriverId, bool IsActive, bool IsApproved, short AvailabilityStatus, short? PrimaryVehicleType, IReadOnlyList<Guid> ActiveZoneIds, int MaximumCapacity, int CurrentLoad, bool HasActiveSuspension);
 public interface IDriverEligibilityProvider { Task<DriverEligibilitySnapshot?> GetAsync(Guid driverId, CancellationToken cancellationToken = default); }
 public interface IDriverOperationalSnapshotProvider { Task<DriverEligibilitySnapshot?> GetByUserAsync(Guid userId, CancellationToken cancellationToken = default); }
+public sealed record DriverDispatchCandidateSnapshot(Guid DriverId, bool IsActive, bool IsApproved, short AvailabilityStatus, short? PrimaryVehicleType, IReadOnlyList<Guid> ActiveZoneIds, int MaximumCapacity, int CurrentLoad, bool HasActiveSuspension, DateTime? LastAssignmentAtUtc);
+public interface IDriverDispatchCandidateProvider { Task<IReadOnlyList<DriverDispatchCandidateSnapshot>> FindAsync(Guid zoneId, short? requiredVehicleType, int maximumResults, CancellationToken cancellationToken = default); }
 
 public sealed record DriverActivatedIntegrationEvent(Guid Id, int Version, Guid DriverId, DateTime OccurredAtUtc) : IIntegrationEvent;
 public sealed record DriverAvailabilityChangedIntegrationEvent(Guid Id, int Version, Guid DriverId, short Status, DateTime OccurredAtUtc) : IIntegrationEvent;

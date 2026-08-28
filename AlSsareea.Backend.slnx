@@ -86,6 +86,12 @@
     <Project Path="src/Modules/Delivery/AlSsareea.Modules.Delivery.Domain/AlSsareea.Modules.Delivery.Domain.csproj" />
     <Project Path="src/Modules/Delivery/AlSsareea.Modules.Delivery.Infrastructure/AlSsareea.Modules.Delivery.Infrastructure.csproj" />
   </Folder>
+  <Folder Name="/src/Modules/Dispatching/">
+    <Project Path="src/Modules/Dispatching/AlSsareea.Modules.Dispatching.Application/AlSsareea.Modules.Dispatching.Application.csproj" />
+    <Project Path="src/Modules/Dispatching/AlSsareea.Modules.Dispatching.Contracts/AlSsareea.Modules.Dispatching.Contracts.csproj" />
+    <Project Path="src/Modules/Dispatching/AlSsareea.Modules.Dispatching.Domain/AlSsareea.Modules.Dispatching.Domain.csproj" />
+    <Project Path="src/Modules/Dispatching/AlSsareea.Modules.Dispatching.Infrastructure/AlSsareea.Modules.Dispatching.Infrastructure.csproj" />
+  </Folder>
   <Folder Name="/tests/">
     <Project Path="tests/AlSsareea.ArchitectureTests/AlSsareea.ArchitectureTests.csproj" />
     <Project Path="tests/AlSsareea.IntegrationTests/AlSsareea.IntegrationTests.csproj" />

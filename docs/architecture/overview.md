@@ -68,3 +68,9 @@ public Contracts, stores immutable pickup/drop-off snapshots and append-only bus
 and emits integration facts transactionally through its outbox. Delivery replaces Tracking's
 deny-all visibility provider with an ownership- and state-aware implementation; Tracking remains
 the sole owner of GPS history, latest-location projection, and realtime transport.
+
+Phase 16 adds the [Dispatching module](../modules/dispatching/README.md). Dispatching owns
+candidate discovery orchestration, deterministic ranking, sequential offers, bounded retry,
+single-winner selection, and audited emergency assignment. It consumes Drivers, Tracking, Maps,
+and Delivery only through public Contracts. Delivery remains the sole owner of post-assignment
+pickup, transit, proof, completion, and failure execution.

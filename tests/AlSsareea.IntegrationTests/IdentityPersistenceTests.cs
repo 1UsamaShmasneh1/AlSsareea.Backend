@@ -102,7 +102,7 @@ public sealed class IdentityPersistenceTests(PostgresFixture fixture)
         long crossSchemaForeignKeys = await ScalarLongAsync(db, "SELECT count(*) FROM pg_constraint c JOIN pg_namespace source_schema ON source_schema.oid=c.connamespace JOIN pg_class target_table ON target_table.oid=c.confrelid JOIN pg_namespace target_schema ON target_schema.oid=target_table.relnamespace WHERE source_schema.nspname='identity' AND c.contype='f' AND target_schema.nspname<>'identity'");
         Assert.Equal(0, crossSchemaForeignKeys);
 
-        List<string> unexpectedSchemas = await QueryStringsAsync(db, "SELECT schema_name FROM information_schema.schemata WHERE schema_name NOT IN ('identity','customers','maps','merchants','catalog','media','pricing','promotions','carts','orders','drivers','tracking','delivery','public','information_schema','pg_catalog','pg_toast','topology','tiger','tiger_data') AND schema_name NOT LIKE 'pg_temp_%' AND schema_name NOT LIKE 'pg_toast_temp_%'");
+        List<string> unexpectedSchemas = await QueryStringsAsync(db, "SELECT schema_name FROM information_schema.schemata WHERE schema_name NOT IN ('identity','customers','maps','merchants','catalog','media','pricing','promotions','carts','orders','drivers','tracking','delivery','dispatching','public','information_schema','pg_catalog','pg_toast','topology','tiger','tiger_data') AND schema_name NOT LIKE 'pg_temp_%' AND schema_name NOT LIKE 'pg_toast_temp_%'");
         Assert.Empty(unexpectedSchemas);
     }
 
