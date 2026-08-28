@@ -1,4 +1,5 @@
 using AlSsareea.Modules.Delivery.Application;
+using AlSsareea.Modules.Delivery.Contracts;
 using AlSsareea.Modules.Delivery.Infrastructure.Persistence;
 using AlSsareea.Modules.Tracking.Contracts;
 using Microsoft.EntityFrameworkCore;
@@ -19,7 +20,7 @@ public static class DependencyInjection
         services.AddHealthChecks().AddDbContextCheck<DeliveryDbContext>("delivery-postgresql", tags: ["ready"]);
         services.AddScoped<IDeliveryRepository, DeliveryRepository>();
         services.AddScoped<IDeliveryPinProtector, DeliveryPinProtector>();
-        services.AddScoped<IDeliveryService, DeliveryService>();
+        services.AddScoped<DeliveryService>(); services.AddScoped<IDeliveryService>(x => x.GetRequiredService<DeliveryService>()); services.AddScoped<IDispatchDeliveryProvider>(x => x.GetRequiredService<DeliveryService>());
         services.Replace(ServiceDescriptor.Scoped<ITrackingVisibilityProvider, DeliveryTrackingVisibilityProvider>());
         return services;
     }

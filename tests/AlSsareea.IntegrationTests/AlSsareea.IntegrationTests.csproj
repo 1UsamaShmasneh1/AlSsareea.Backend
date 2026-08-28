@@ -4,6 +4,9 @@
     <IsTestProject>true</IsTestProject>
   </PropertyGroup>
   <ItemGroup>
+    <ProjectReference Include="..\..\src\Modules\Dispatching\AlSsareea.Modules.Dispatching.Domain\AlSsareea.Modules.Dispatching.Domain.csproj" />
+    <ProjectReference Include="..\..\src\Modules\Dispatching\AlSsareea.Modules.Dispatching.Application\AlSsareea.Modules.Dispatching.Application.csproj" />
+    <ProjectReference Include="..\..\src\Modules\Dispatching\AlSsareea.Modules.Dispatching.Infrastructure\AlSsareea.Modules.Dispatching.Infrastructure.csproj" />
     <ProjectReference Include="..\..\src\Modules\Delivery\AlSsareea.Modules.Delivery.Application\AlSsareea.Modules.Delivery.Application.csproj" />
     <ProjectReference Include="..\..\src\Modules\Delivery\AlSsareea.Modules.Delivery.Contracts\AlSsareea.Modules.Delivery.Contracts.csproj" />
     <ProjectReference Include="..\..\src\Modules\Delivery\AlSsareea.Modules.Delivery.Domain\AlSsareea.Modules.Delivery.Domain.csproj" />

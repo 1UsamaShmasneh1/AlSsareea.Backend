@@ -2,6 +2,7 @@ using AlSsareea.Modules.Carts.Infrastructure.Persistence;
 using AlSsareea.Modules.Catalog.Infrastructure.Persistence;
 using AlSsareea.Modules.Customers.Infrastructure.Persistence;
 using AlSsareea.Modules.Delivery.Infrastructure.Persistence;
+using AlSsareea.Modules.Dispatching.Infrastructure.Persistence;
 using AlSsareea.Modules.Drivers.Infrastructure.Persistence;
 using AlSsareea.Modules.Identity.Infrastructure.Persistence;
 using AlSsareea.Modules.Media.Infrastructure.Persistence;
@@ -58,6 +59,8 @@ public sealed class PostgresFixture : IAsyncLifetime
         await trackingDbContext.Database.MigrateAsync();
         DeliveryDbContext deliveryDbContext = scope.ServiceProvider.GetRequiredService<DeliveryDbContext>();
         await deliveryDbContext.Database.MigrateAsync();
+        DispatchingDbContext dispatchingDbContext = scope.ServiceProvider.GetRequiredService<DispatchingDbContext>();
+        await dispatchingDbContext.Database.MigrateAsync();
     }
 
     public async Task DisposeAsync()

@@ -4,7 +4,7 @@ Backend foundation for **AlSsareea (عالسريع)**, a multilingual delivery p
 
 ## Status
 
-Phase 15 adds the Delivery module on top of the completed Identity, authentication,
+Phase 16 adds the Dispatching module on top of the completed Delivery, Identity, authentication,
 authorization, Customers, and Maps phases. The solution now includes merchant and branch
 lifecycles, scoped employees and ownership, relational schedules and overrides, PostGIS
 branch locations, Maps-owned service-area assignments, and merchant-owned localized
@@ -21,7 +21,8 @@ integer-minor-unit calculations and immutable calculation snapshots. See
 [the Orders module](src/Modules/Orders/README.md), and
 [the Drivers module](docs/modules/drivers/README.md), and
 [the Tracking module](docs/modules/tracking/README.md), and
-[the Delivery module](docs/modules/delivery/README.md).
+[the Delivery module](docs/modules/delivery/README.md), and
+[the Dispatching module](docs/modules/dispatching/README.md).
 
 ## Requirements
 
@@ -56,14 +57,14 @@ docker compose down
 
 ## Connection string
 
-Identity, Customers, Maps, Merchants, Catalog, Media, Pricing, Promotions, Carts, Orders, Drivers, Tracking, and Delivery own separate contexts and migration histories while normally
+Identity, Customers, Maps, Merchants, Catalog, Media, Pricing, Promotions, Carts, Orders, Drivers, Tracking, Delivery, and Dispatching own separate contexts and migration histories while normally
 using the same PostgreSQL database. Configure `ConnectionStrings:IdentityDatabase`,
 `ConnectionStrings:CustomersDatabase`, `ConnectionStrings:MapsDatabase`,
 `ConnectionStrings:MerchantsDatabase`, `ConnectionStrings:CatalogDatabase`, and
 `ConnectionStrings:MediaDatabase`, `ConnectionStrings:PricingDatabase`, and
 `ConnectionStrings:PromotionsDatabase`, `ConnectionStrings:CartsDatabase`, and
 `ConnectionStrings:OrdersDatabase`, `ConnectionStrings:DriversDatabase`,
-`ConnectionStrings:TrackingDatabase`, and `ConnectionStrings:DeliveryDatabase`.
+`ConnectionStrings:TrackingDatabase`, `ConnectionStrings:DeliveryDatabase`, and `ConnectionStrings:DispatchingDatabase`.
 `appsettings.Development.json` contains local-only values matching Compose.
 
 ```powershell
@@ -80,6 +81,7 @@ dotnet user-secrets set "ConnectionStrings:CartsDatabase" "Host=localhost;Port=5
 dotnet user-secrets set "ConnectionStrings:OrdersDatabase" "Host=localhost;Port=5432;Database=alssareea;Username=alssareea;Password=<development-password>" --project src/AlSsareea.Api
 dotnet user-secrets set "ConnectionStrings:DriversDatabase" "Host=localhost;Port=5432;Database=alssareea;Username=alssareea;Password=<development-password>" --project src/AlSsareea.Api
 dotnet user-secrets set "ConnectionStrings:DeliveryDatabase" "Host=localhost;Port=5432;Database=alssareea;Username=alssareea;Password=<development-password>" --project src/AlSsareea.Api
+dotnet user-secrets set "ConnectionStrings:DispatchingDatabase" "Host=localhost;Port=5432;Database=alssareea;Username=alssareea;Password=<development-password>" --project src/AlSsareea.Api
 ```
 
 No production connection string is stored in the repository.
@@ -112,6 +114,7 @@ $promotionsProject = ".\src\Modules\Promotions\AlSsareea.Modules.Promotions.Infr
 $cartsProject = ".\src\Modules\Carts\AlSsareea.Modules.Carts.Infrastructure\AlSsareea.Modules.Carts.Infrastructure.csproj"
 $ordersProject = ".\src\Modules\Orders\AlSsareea.Modules.Orders.Infrastructure\AlSsareea.Modules.Orders.Infrastructure.csproj"
 $deliveryProject = ".\src\Modules\Delivery\AlSsareea.Modules.Delivery.Infrastructure\AlSsareea.Modules.Delivery.Infrastructure.csproj"
+$dispatchingProject = ".\src\Modules\Dispatching\AlSsareea.Modules.Dispatching.Infrastructure\AlSsareea.Modules.Dispatching.Infrastructure.csproj"
 
 dotnet ef migrations add <MigrationName> --project $identityProject --context IdentityDbContext --output-dir Persistence\Migrations
 dotnet ef database update --project $identityProject --context IdentityDbContext
@@ -136,6 +139,8 @@ dotnet ef database update --project $ordersProject --startup-project $ordersProj
 dotnet ef migrations has-pending-model-changes --project $ordersProject --startup-project $ordersProject --context OrdersDbContext
 dotnet ef database update --project $deliveryProject --startup-project $deliveryProject --context DeliveryDbContext
 dotnet ef migrations has-pending-model-changes --project $deliveryProject --startup-project $deliveryProject --context DeliveryDbContext
+dotnet ef database update --project $dispatchingProject --context DispatchingDbContext
+dotnet ef migrations has-pending-model-changes --project $dispatchingProject --context DispatchingDbContext
 ```
 
 Only remove a migration that has not been applied. Migrations are never applied automatically when the API starts.
@@ -216,6 +221,7 @@ Future versioned business endpoints will use the `/api/v1` base path. The unvers
 - `src/Modules/Drivers`: Driver profiles, activation, vehicles, documents, service areas, availability, shifts, violations, suspensions, and operational eligibility.
 - `src/Modules/Tracking`: Driver GPS ingestion, immutable PostGIS history, latest projection, offline synchronization, privacy, and realtime hints.
 - `src/Modules/Delivery`: Delivery execution, assignment, proof policy, append-only timeline, failure handling, and tracking visibility.
+- `src/Modules/Dispatching`: Driver candidate evaluation, deterministic ranking, sequential offers, bounded reassignment, and audited assignment decisions.
 - `tests`: unit, integration, and architecture tests.
 - `docs`: architecture notes and Architecture Decision Records.
 
@@ -246,3 +252,5 @@ Tracking owns schema `tracking`, immutable location history and a conditional la
 it has no cross-schema foreign keys, per-ping audit, or outbox.
 Delivery owns schema `delivery`, one delivery per order, append-only status/proof history,
 operation idempotency, audit, and an outbox; all cross-module identifiers remain scalar references.
+Dispatching owns schema `dispatching`, one dispatch request per delivery, append-only decision
+history, idempotency, audit, and an outbox; all cross-module identifiers remain scalar references.

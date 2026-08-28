@@ -1,5 +1,8 @@
 <Project Sdk="Microsoft.NET.Sdk.Web">
   <ItemGroup>
+    <ProjectReference Include="..\Modules\Dispatching\AlSsareea.Modules.Dispatching.Application\AlSsareea.Modules.Dispatching.Application.csproj" />
+    <ProjectReference Include="..\Modules\Dispatching\AlSsareea.Modules.Dispatching.Contracts\AlSsareea.Modules.Dispatching.Contracts.csproj" />
+    <ProjectReference Include="..\Modules\Dispatching\AlSsareea.Modules.Dispatching.Infrastructure\AlSsareea.Modules.Dispatching.Infrastructure.csproj" />
     <ProjectReference Include="..\Modules\Delivery\AlSsareea.Modules.Delivery.Application\AlSsareea.Modules.Delivery.Application.csproj" />
     <ProjectReference Include="..\Modules\Delivery\AlSsareea.Modules.Delivery.Contracts\AlSsareea.Modules.Delivery.Contracts.csproj" />
     <ProjectReference Include="..\Modules\Delivery\AlSsareea.Modules.Delivery.Infrastructure\AlSsareea.Modules.Delivery.Infrastructure.csproj" />

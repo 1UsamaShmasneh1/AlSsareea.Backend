@@ -28,6 +28,14 @@ public sealed record DeliveryResponse(
     DeliveryLocationSnapshotResponse Pickup, DeliveryLocationSnapshotResponse DropOff,
     IReadOnlyList<DeliveryStatusHistoryResponse> Timeline, IReadOnlyList<DeliveryProofResponse> Proofs);
 public sealed record DeliveryCreatedResponse(DeliveryResponse Delivery, string? Pin);
+public sealed record DispatchDeliverySnapshot(Guid DeliveryId, Guid OrderId, Guid MerchantId, Guid? BranchId, short Status, Guid? DriverId, double? PickupLatitude, double? PickupLongitude);
+public enum DispatchAssignmentStatus { Applied, AlreadyApplied, NotFound, Invalid, Conflict }
+public sealed record DispatchAssignmentResult(DispatchAssignmentStatus Status, Guid? DriverId = null, string? ErrorCode = null);
+public interface IDispatchDeliveryProvider
+{
+    Task<DispatchDeliverySnapshot?> GetAsync(Guid deliveryId, CancellationToken cancellationToken = default);
+    Task<DispatchAssignmentResult> AssignAsync(Guid deliveryId, Guid driverId, Guid assignmentId, CancellationToken cancellationToken = default);
+}
 
 public sealed record DeliveryCreatedIntegrationEvent(Guid Id, int Version, Guid DeliveryId, Guid OrderId, Guid CustomerId, Guid MerchantId, DateTime OccurredAtUtc) : IIntegrationEvent;
 public sealed record DeliveryDriverAssignedIntegrationEvent(Guid Id, int Version, Guid DeliveryId, Guid OrderId, Guid DriverId, DateTime OccurredAtUtc) : IIntegrationEvent;
