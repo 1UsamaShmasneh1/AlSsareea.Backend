@@ -1,5 +1,8 @@
 namespace AlSsareea.Modules.Customers.Contracts;
 
+public sealed record CustomerNotificationRecipient(Guid UserId, string Language);
+public interface ICustomerNotificationRecipientProvider { Task<CustomerNotificationRecipient?> GetAsync(Guid customerId, CancellationToken cancellationToken = default); }
+
 public sealed record CartCustomerContext(Guid CustomerId, bool IsAllowed);
 public interface ICartCustomerContextProvider
 {

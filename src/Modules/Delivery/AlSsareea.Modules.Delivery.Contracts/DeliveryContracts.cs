@@ -36,6 +36,8 @@ public interface IDispatchDeliveryProvider
     Task<DispatchDeliverySnapshot?> GetAsync(Guid deliveryId, CancellationToken cancellationToken = default);
     Task<DispatchAssignmentResult> AssignAsync(Guid deliveryId, Guid driverId, Guid assignmentId, CancellationToken cancellationToken = default);
 }
+public sealed record DeliveryNotificationRecipient(Guid UserId, string Language);
+public interface IDeliveryNotificationRecipientProvider { Task<DeliveryNotificationRecipient?> GetAsync(Guid deliveryId, CancellationToken cancellationToken = default); }
 
 public sealed record DeliveryCreatedIntegrationEvent(Guid Id, int Version, Guid DeliveryId, Guid OrderId, Guid CustomerId, Guid MerchantId, DateTime OccurredAtUtc) : IIntegrationEvent;
 public sealed record DeliveryDriverAssignedIntegrationEvent(Guid Id, int Version, Guid DeliveryId, Guid OrderId, Guid DriverId, DateTime OccurredAtUtc) : IIntegrationEvent;

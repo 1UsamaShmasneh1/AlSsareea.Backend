@@ -92,6 +92,12 @@
     <Project Path="src/Modules/Dispatching/AlSsareea.Modules.Dispatching.Domain/AlSsareea.Modules.Dispatching.Domain.csproj" />
     <Project Path="src/Modules/Dispatching/AlSsareea.Modules.Dispatching.Infrastructure/AlSsareea.Modules.Dispatching.Infrastructure.csproj" />
   </Folder>
+  <Folder Name="/src/Modules/Notifications/">
+    <Project Path="src/Modules/Notifications/AlSsareea.Modules.Notifications.Application/AlSsareea.Modules.Notifications.Application.csproj" />
+    <Project Path="src/Modules/Notifications/AlSsareea.Modules.Notifications.Contracts/AlSsareea.Modules.Notifications.Contracts.csproj" />
+    <Project Path="src/Modules/Notifications/AlSsareea.Modules.Notifications.Domain/AlSsareea.Modules.Notifications.Domain.csproj" />
+    <Project Path="src/Modules/Notifications/AlSsareea.Modules.Notifications.Infrastructure/AlSsareea.Modules.Notifications.Infrastructure.csproj" />
+  </Folder>
   <Folder Name="/tests/">
     <Project Path="tests/AlSsareea.ArchitectureTests/AlSsareea.ArchitectureTests.csproj" />
     <Project Path="tests/AlSsareea.IntegrationTests/AlSsareea.IntegrationTests.csproj" />

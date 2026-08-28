@@ -60,3 +60,10 @@ jobs:
           --project ./src/Modules/Tracking/AlSsareea.Modules.Tracking.Infrastructure/AlSsareea.Modules.Tracking.Infrastructure.csproj
           --startup-project ./src/Modules/Tracking/AlSsareea.Modules.Tracking.Infrastructure/AlSsareea.Modules.Tracking.Infrastructure.csproj
           --context TrackingDbContext
+
+      - name: Verify Notifications migration model
+        run: >-
+          dotnet ef migrations has-pending-model-changes
+          --project ./src/Modules/Notifications/AlSsareea.Modules.Notifications.Infrastructure/AlSsareea.Modules.Notifications.Infrastructure.csproj
+          --startup-project ./src/Modules/Notifications/AlSsareea.Modules.Notifications.Infrastructure/AlSsareea.Modules.Notifications.Infrastructure.csproj
+          --context NotificationsDbContext

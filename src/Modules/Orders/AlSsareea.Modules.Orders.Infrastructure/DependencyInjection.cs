@@ -1,3 +1,4 @@
+using AlSsareea.BuildingBlocks.Application;
 using AlSsareea.Modules.Orders.Application;
 using AlSsareea.Modules.Orders.Contracts;
 using AlSsareea.Modules.Orders.Infrastructure.Persistence;
@@ -16,6 +17,6 @@ public static class DependencyInjection
         if (string.IsNullOrWhiteSpace(connection)) throw new InvalidOperationException("ConnectionStrings:OrdersDatabase is required.");
         services.AddDbContext<OrdersDbContext>(options => options.UseNpgsql(connection, npgsql => npgsql.MigrationsAssembly(typeof(OrdersDbContext).Assembly.FullName).MigrationsHistoryTable(OrdersPersistence.MigrationsHistoryTable, OrdersPersistence.Schema)).UseSnakeCaseNamingConvention());
         services.AddHealthChecks().AddDbContextCheck<OrdersDbContext>("orders-postgresql", tags: ["ready"]);
-        services.AddScoped<IOrderRepository, OrderRepository>(); services.AddScoped<IOrderService, OrderService>(); services.AddScoped<IMerchantOrderService, MerchantOrderService>(); services.AddScoped<IDeliveryOrderSnapshotProvider, DeliveryOrderSnapshotProvider>(); return services;
+        services.AddScoped<IIntegrationEventSource, OrdersOutboxSource>(); services.AddScoped<IOrderRepository, OrderRepository>(); services.AddScoped<IOrderService, OrderService>(); services.AddScoped<IMerchantOrderService, MerchantOrderService>(); services.AddScoped<IDeliveryOrderSnapshotProvider, DeliveryOrderSnapshotProvider>(); return services;
     }
 }

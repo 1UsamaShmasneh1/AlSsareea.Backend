@@ -16,7 +16,7 @@ public static class DependencyInjection
         if (string.IsNullOrWhiteSpace(connection)) throw new InvalidOperationException("ConnectionStrings:DriversDatabase is required.");
         services.AddDbContext<DriversDbContext>(options => options.UseNpgsql(connection, npgsql => npgsql.MigrationsAssembly(typeof(DriversDbContext).Assembly.FullName).MigrationsHistoryTable(DriversPersistence.MigrationsHistoryTable, DriversPersistence.Schema)).UseSnakeCaseNamingConvention());
         services.AddHealthChecks().AddDbContextCheck<DriversDbContext>("drivers-postgresql", tags: ["ready"]);
-        services.AddScoped<IDriverRepository, DriverRepository>(); services.AddScoped<DriverService>(); services.AddScoped<IDriverService>(x => x.GetRequiredService<DriverService>()); services.AddScoped<IDriverEligibilityProvider>(x => x.GetRequiredService<DriverService>()); services.AddScoped<IDriverOperationalSnapshotProvider>(x => x.GetRequiredService<DriverService>()); services.AddScoped<IDriverDispatchCandidateProvider, DriverDispatchCandidateProvider>();
+        services.AddScoped<IDriverNotificationRecipientProvider, DriverNotificationRecipientProvider>(); services.AddScoped<IDriverRepository, DriverRepository>(); services.AddScoped<DriverService>(); services.AddScoped<IDriverService>(x => x.GetRequiredService<DriverService>()); services.AddScoped<IDriverEligibilityProvider>(x => x.GetRequiredService<DriverService>()); services.AddScoped<IDriverOperationalSnapshotProvider>(x => x.GetRequiredService<DriverService>()); services.AddScoped<IDriverDispatchCandidateProvider, DriverDispatchCandidateProvider>();
         return services;
     }
 }

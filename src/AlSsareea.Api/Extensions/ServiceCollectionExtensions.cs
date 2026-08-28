@@ -23,6 +23,7 @@ using AlSsareea.Modules.Maps.Infrastructure;
 using AlSsareea.Modules.Media.Infrastructure;
 using AlSsareea.Modules.Merchants.Application;
 using AlSsareea.Modules.Merchants.Infrastructure;
+using AlSsareea.Modules.Notifications.Infrastructure;
 using AlSsareea.Modules.Orders.Application;
 using AlSsareea.Modules.Orders.Infrastructure;
 using AlSsareea.Modules.Pricing.Application;
@@ -117,6 +118,8 @@ public static class ServiceCollectionExtensions
             AddFixedWindow(options, "drivers-write", 60, 60);
             AddFixedWindow(options, "tracking-ingestion", Math.Max(1, tracking.IngestionPermitLimit), 60);
             AddFixedWindow(options, "dispatching-write", 120, 60);
+            AddFixedWindow(options, "notifications-read", 180, 60);
+            AddFixedWindow(options, "notifications-write", 60, 60);
         });
 
         services.ConfigureHttpJsonOptions(options =>
@@ -155,6 +158,7 @@ public static class ServiceCollectionExtensions
         services.AddTrackingInfrastructure(configuration);
         services.AddDeliveryInfrastructure(configuration);
         services.AddDispatchingInfrastructure(configuration);
+        services.AddNotificationsInfrastructure(configuration);
         services.AddScoped<ILocationRealtimePublisher, TrackingRealtimePublisher>();
         services.AddSingleton<IMerchantOrderRealtimePublisher, MerchantOrderRealtimePublisher>();
 

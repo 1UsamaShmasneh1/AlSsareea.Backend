@@ -24,6 +24,7 @@ public sealed class ApiFactory(string connectionString, int loginPermitLimit = 1
         builder.UseSetting("ConnectionStrings:TrackingDatabase", connectionString);
         builder.UseSetting("ConnectionStrings:DeliveryDatabase", connectionString);
         builder.UseSetting("ConnectionStrings:DispatchingDatabase", connectionString);
+        builder.UseSetting("ConnectionStrings:NotificationsDatabase", connectionString);
         builder.UseSetting("Authentication:Jwt:Issuer", "AlSsareea.Tests");
         builder.UseSetting("Authentication:Jwt:Audience", "AlSsareea.TestClients");
         builder.UseSetting("Authentication:Jwt:SigningKey", "TEST-ONLY-JWT-SIGNING-KEY-NEVER-USE-IN-PRODUCTION-1234567890");
@@ -50,6 +51,7 @@ public sealed class ApiFactory(string connectionString, int loginPermitLimit = 1
                 ["ConnectionStrings:TrackingDatabase"] = connectionString,
                 ["ConnectionStrings:DeliveryDatabase"] = connectionString,
                 ["ConnectionStrings:DispatchingDatabase"] = connectionString,
+                ["ConnectionStrings:NotificationsDatabase"] = connectionString,
                 ["Authentication:Jwt:Issuer"] = "AlSsareea.Tests",
                 ["Authentication:Jwt:Audience"] = "AlSsareea.TestClients",
                 ["Authentication:Jwt:SigningKey"] = "TEST-ONLY-JWT-SIGNING-KEY-NEVER-USE-IN-PRODUCTION-1234567890",
