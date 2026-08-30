@@ -10,6 +10,7 @@ public static class DependencyInjection
         ArgumentNullException.ThrowIfNull(services);
 
         services.AddScoped<IMapsModule, MapsModule>();
+        services.AddScoped<ICustomerMapsService, CustomerMapsService>();
         return services;
     }
 }

@@ -5,7 +5,7 @@ using Microsoft.EntityFrameworkCore;
 
 namespace AlSsareea.Modules.Delivery.Infrastructure;
 
-internal sealed class DeliveryTrackingVisibilityProvider(DeliveryDbContext db) : ITrackingVisibilityProvider
+internal sealed class DeliveryTrackingVisibilityProvider(DeliveryDbContext db) : ITrackingVisibilityProvider, ITrackingOrderAudienceProvider
 {
     private static readonly DeliveryStatus[] VisibleStatuses = [DeliveryStatus.PickedUp, DeliveryStatus.InTransit, DeliveryStatus.ArrivedAtDropOff];
 
@@ -16,5 +16,15 @@ internal sealed class DeliveryTrackingVisibilityProvider(DeliveryDbContext db) :
             .Where(x => x.OrderId == orderId && x.CustomerUserId == userId && x.DriverId != null && VisibleStatuses.Contains(x.Status))
             .Select(x => new TrackingVisibility(x.DriverId!.Value, $"tracking:order:{orderId}"))
             .SingleOrDefaultAsync(cancellationToken);
+    }
+
+    public async Task<IReadOnlyList<Guid>> GetVisibleOrderIdsForDriverAsync(Guid driverId, CancellationToken cancellationToken = default)
+    {
+        if (driverId == Guid.Empty) return [];
+        return await db.Deliveries.AsNoTracking()
+            .Where(x => x.DriverId == driverId && VisibleStatuses.Contains(x.Status))
+            .OrderBy(x => x.OrderId)
+            .Select(x => x.OrderId)
+            .ToArrayAsync(cancellationToken);
     }
 }

@@ -36,7 +36,7 @@ public sealed class TrackingHub(IDriverOperationalSnapshotProvider drivers, ITra
     }
 }
 
-internal sealed class TrackingRealtimePublisher(IHubContext<TrackingHub> hub, ILogger<TrackingRealtimePublisher> logger) : ILocationRealtimePublisher
+internal sealed class TrackingRealtimePublisher(IHubContext<TrackingHub> hub, ITrackingOrderAudienceProvider audiences, ILogger<TrackingRealtimePublisher> logger) : ILocationRealtimePublisher
 {
     private static readonly Action<ILogger, Guid, Exception?> PublicationFailed = LoggerMessage.Define<Guid>(LogLevel.Warning, new EventId(1401, nameof(PublicationFailed)), "Tracking realtime publication failed for DriverId {DriverId}");
 
@@ -46,6 +46,9 @@ internal sealed class TrackingRealtimePublisher(IHubContext<TrackingHub> hub, IL
         {
             await hub.Clients.Group(TrackingGroups.Driver(driverId)).SendAsync("LocationUpdated", payload, cancellationToken);
             await hub.Clients.Group(TrackingGroups.Operations).SendAsync("LocationUpdated", new { DriverId = driverId, Location = payload }, cancellationToken);
+            IReadOnlyList<Guid> orderIds = await audiences.GetVisibleOrderIdsForDriverAsync(driverId, cancellationToken);
+            foreach (Guid orderId in orderIds)
+                await hub.Clients.Group(TrackingGroups.Order(orderId)).SendAsync("LocationUpdated", payload, cancellationToken);
         }
         catch (Exception exception) when (exception is not OperationCanceledException) { PublicationFailed(logger, driverId, exception); }
     }

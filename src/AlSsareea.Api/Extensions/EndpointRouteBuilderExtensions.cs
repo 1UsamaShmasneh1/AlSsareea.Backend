@@ -12,7 +12,9 @@ public static class EndpointRouteBuilderExtensions
     {
         app.MapAuthenticationEndpoints();
         app.MapCustomerEndpoints();
+        app.MapCustomerMapsEndpoints();
         app.MapMerchantEndpoints();
+        app.MapCustomerMerchantEndpoints();
         app.MapCatalogEndpoints();
         app.MapMediaEndpoints();
         app.MapPricingEndpoints();

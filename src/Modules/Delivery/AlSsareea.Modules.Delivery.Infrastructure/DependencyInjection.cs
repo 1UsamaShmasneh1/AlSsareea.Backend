@@ -25,6 +25,7 @@ public static class DependencyInjection
         services.AddScoped<IDeliveryPinProtector, DeliveryPinProtector>();
         services.AddScoped<DeliveryService>(); services.AddScoped<IDeliveryService>(x => x.GetRequiredService<DeliveryService>()); services.AddScoped<IDispatchDeliveryProvider>(x => x.GetRequiredService<DeliveryService>());
         services.Replace(ServiceDescriptor.Scoped<ITrackingVisibilityProvider, DeliveryTrackingVisibilityProvider>());
+        services.Replace(ServiceDescriptor.Scoped<ITrackingOrderAudienceProvider, DeliveryTrackingVisibilityProvider>());
         return services;
     }
 }
