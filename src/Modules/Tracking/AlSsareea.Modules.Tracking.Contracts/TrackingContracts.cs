@@ -17,5 +17,9 @@ public sealed record DriverLocationHistoryResponse(IReadOnlyList<DriverLocationR
 public sealed record TrackingRealtimePayload(double Latitude, double Longitude, DateTime RecordedAtUtc, double AccuracyMeters, double? SpeedMetersPerSecond, double? HeadingDegrees);
 public sealed record TrackingVisibility(Guid DriverId, string AudienceKey);
 public interface ITrackingVisibilityProvider { Task<TrackingVisibility?> ResolveOrderAsync(Guid orderId, Guid userId, CancellationToken cancellationToken = default); }
+public interface ITrackingOrderAudienceProvider
+{
+    Task<IReadOnlyList<Guid>> GetVisibleOrderIdsForDriverAsync(Guid driverId, CancellationToken cancellationToken = default);
+}
 public sealed record DispatchDriverLocation(Guid DriverId, double Latitude, double Longitude, DateTime RecordedAtUtc, double AccuracyMeters);
 public interface IDispatchLocationProvider { Task<DispatchDriverLocation?> GetLatestAsync(Guid driverId, CancellationToken cancellationToken = default); }

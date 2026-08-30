@@ -65,3 +65,4 @@ internal sealed class TrackingStore(TrackingDbContext db) : ITrackingStore, IDis
 
 internal sealed class NullLocationRealtimePublisher : ILocationRealtimePublisher { public Task PublishAsync(Guid driverId, TrackingRealtimePayload payload, CancellationToken cancellationToken) => Task.CompletedTask; }
 internal sealed class UnavailableTrackingVisibilityProvider : ITrackingVisibilityProvider { public Task<TrackingVisibility?> ResolveOrderAsync(Guid orderId, Guid userId, CancellationToken cancellationToken = default) => Task.FromResult<TrackingVisibility?>(null); }
+internal sealed class UnavailableTrackingOrderAudienceProvider : ITrackingOrderAudienceProvider { public Task<IReadOnlyList<Guid>> GetVisibleOrderIdsForDriverAsync(Guid driverId, CancellationToken cancellationToken = default) => Task.FromResult<IReadOnlyList<Guid>>([]); }

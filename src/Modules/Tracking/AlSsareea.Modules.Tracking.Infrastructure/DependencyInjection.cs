@@ -19,7 +19,7 @@ public static class DependencyInjection
         services.AddDbContext<TrackingDbContext>(options => options.UseNpgsql(connection, npgsql => npgsql.UseNetTopologySuite().MigrationsAssembly(typeof(TrackingDbContext).Assembly.FullName).MigrationsHistoryTable(TrackingPersistence.MigrationsHistoryTable, TrackingPersistence.Schema)).UseSnakeCaseNamingConvention());
         services.AddHealthChecks().AddDbContextCheck<TrackingDbContext>("tracking-postgresql", tags: ["ready"]);
         services.AddScoped<TrackingStore>(); services.AddScoped<ITrackingStore>(x => x.GetRequiredService<TrackingStore>()); services.AddScoped<IDispatchLocationProvider>(x => x.GetRequiredService<TrackingStore>()); services.AddScoped<ITrackingService, TrackingService>();
-        services.TryAddScoped<ILocationRealtimePublisher, NullLocationRealtimePublisher>(); services.TryAddScoped<ITrackingVisibilityProvider, UnavailableTrackingVisibilityProvider>();
+        services.TryAddScoped<ILocationRealtimePublisher, NullLocationRealtimePublisher>(); services.TryAddScoped<ITrackingVisibilityProvider, UnavailableTrackingVisibilityProvider>(); services.TryAddScoped<ITrackingOrderAudienceProvider, UnavailableTrackingOrderAudienceProvider>();
         return services;
     }
 }

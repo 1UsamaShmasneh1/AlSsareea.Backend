@@ -89,6 +89,20 @@ public interface IMerchantsService
     Task<MerchantOperationResult<MerchantEmployeeResponse>> RemoveEmployeeBranchRestrictionAsync(Guid merchantId, Guid employeeId, MerchantEmployeeActionRequest request, MerchantActor actor, CancellationToken cancellationToken);
 }
 
+public interface ICustomerMerchantQueryService
+{
+    Task<MerchantOperationResult<CustomerMerchantListResponse>> DiscoverAsync(
+        int page,
+        int pageSize,
+        string? query,
+        bool? openNow,
+        CancellationToken cancellationToken);
+
+    Task<MerchantOperationResult<CustomerMerchantDetails>> GetDetailsAsync(
+        Guid merchantId,
+        CancellationToken cancellationToken);
+}
+
 public static class DependencyInjection
 {
     public static IServiceCollection AddMerchantsApplication(this IServiceCollection services) => services;

@@ -11,6 +11,38 @@ public sealed record MerchantResponse(Guid Id, string LegalName, string DisplayN
 public sealed record MerchantSummaryResponse(Guid Id, string DisplayName, short Status, Guid OwnerUserId, DateTime CreatedAtUtc);
 public sealed record MerchantListResponse(IReadOnlyList<MerchantSummaryResponse> Items, int Page, int PageSize, int TotalCount);
 
+public sealed record CustomerMerchantBranchSummary(
+    Guid Id,
+    string Name,
+    string City,
+    string? Area,
+    string Street,
+    double Latitude,
+    double Longitude,
+    bool IsPrimary,
+    bool IsOpen);
+
+public sealed record CustomerMerchantSummary(
+    Guid Id,
+    string DisplayName,
+    string? Description,
+    bool IsOpen,
+    CustomerMerchantBranchSummary? PrimaryBranch);
+
+public sealed record CustomerMerchantListResponse(
+    IReadOnlyList<CustomerMerchantSummary> Items,
+    int Page,
+    int PageSize,
+    int TotalCount);
+
+public sealed record CustomerMerchantDetails(
+    Guid Id,
+    string DisplayName,
+    string? Description,
+    bool IsOpen,
+    IReadOnlyList<CustomerMerchantBranchSummary> Branches,
+    string CatalogPath);
+
 public sealed record BranchAddressRequest(string City, string? Area, string Street, string? BuildingNumber, string? PostalCode);
 public sealed record CoordinateRequest(double Latitude, double Longitude);
 public sealed record CreateMerchantBranchRequest(string Name, string? Code, string PhoneNumber, string? Email, BranchAddressRequest Address, CoordinateRequest Location, string TimeZone, bool IsPrimary);

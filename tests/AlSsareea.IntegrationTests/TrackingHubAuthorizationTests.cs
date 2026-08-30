@@ -6,6 +6,7 @@ using AlSsareea.Modules.Identity.Domain;
 using AlSsareea.Modules.Tracking.Contracts;
 using Microsoft.AspNetCore.Http.Features;
 using Microsoft.AspNetCore.SignalR;
+using Microsoft.Extensions.Logging.Abstractions;
 
 namespace AlSsareea.IntegrationTests;
 
@@ -49,6 +50,21 @@ public sealed class TrackingHubAuthorizationTests
         Assert.Equal(["AccuracyMeters", "HeadingDegrees", "Latitude", "Longitude", "RecordedAtUtc", "SpeedMetersPerSecond"], names);
     }
 
+    [Fact]
+    public async Task PublisherSendsCustomerPayloadToAuthorizedOrderAudience()
+    {
+        Guid driverId = Guid.NewGuid(); Guid orderId = Guid.NewGuid();
+        var context = new RecordingHubContext();
+        var publisher = new TrackingRealtimePublisher(context, new AudienceProvider(orderId), NullLogger<TrackingRealtimePublisher>.Instance);
+        var payload = new TrackingRealtimePayload(31.9, 35.2, DateTime.UtcNow, 5, null, null);
+
+        await publisher.PublishAsync(driverId, payload, default);
+
+        RecordingProxy order = context.ClientsImpl.ForGroup(TrackingGroups.Order(orderId));
+        Assert.Equal("LocationUpdated", Assert.Single(order.Messages).Method);
+        Assert.Same(payload, Assert.Single(order.Messages).Args[0]);
+    }
+
     private static TrackingHub CreateHub(ICurrentUser user, IDriverOperationalSnapshotProvider drivers, ITrackingVisibilityProvider visibility, RecordingGroups groups) => new(drivers, visibility, user)
     {
         Context = new CallerContext(),
@@ -63,6 +79,40 @@ public sealed class TrackingHubAuthorizationTests
     private sealed class VisibilityProvider(TrackingVisibility? visibility) : ITrackingVisibilityProvider
     {
         public Task<TrackingVisibility?> ResolveOrderAsync(Guid orderId, Guid userId, CancellationToken cancellationToken = default) => Task.FromResult(visibility);
+    }
+
+    private sealed class AudienceProvider(Guid orderId) : ITrackingOrderAudienceProvider
+    {
+        public Task<IReadOnlyList<Guid>> GetVisibleOrderIdsForDriverAsync(Guid driverId, CancellationToken cancellationToken = default) => Task.FromResult<IReadOnlyList<Guid>>([orderId]);
+    }
+
+    private sealed class RecordingHubContext : IHubContext<TrackingHub>
+    {
+        public RecordingClients ClientsImpl { get; } = new();
+        public IHubClients Clients => ClientsImpl;
+        public IGroupManager Groups { get; } = new RecordingGroups();
+    }
+
+    private sealed class RecordingClients : IHubClients
+    {
+        private readonly Dictionary<string, RecordingProxy> groups = new(StringComparer.Ordinal);
+        private readonly RecordingProxy other = new();
+        public RecordingProxy ForGroup(string name) => groups.GetValueOrDefault(name) ?? new RecordingProxy();
+        public IClientProxy All => other;
+        public IClientProxy AllExcept(IReadOnlyList<string> excludedConnectionIds) => other;
+        public IClientProxy Client(string connectionId) => other;
+        public IClientProxy Clients(IReadOnlyList<string> connectionIds) => other;
+        public IClientProxy Group(string groupName) => groups.TryGetValue(groupName, out RecordingProxy? value) ? value : groups[groupName] = new RecordingProxy();
+        public IClientProxy GroupExcept(string groupName, IReadOnlyList<string> excludedConnectionIds) => Group(groupName);
+        public IClientProxy Groups(IReadOnlyList<string> groupNames) => other;
+        public IClientProxy User(string userId) => other;
+        public IClientProxy Users(IReadOnlyList<string> userIds) => other;
+    }
+
+    private sealed class RecordingProxy : IClientProxy
+    {
+        public List<(string Method, object?[] Args)> Messages { get; } = [];
+        public Task SendCoreAsync(string method, object?[] args, CancellationToken cancellationToken = default) { Messages.Add((method, args)); return Task.CompletedTask; }
     }
 
     private sealed class CurrentUser(Guid userId, params string[] permissions) : ICurrentUser
