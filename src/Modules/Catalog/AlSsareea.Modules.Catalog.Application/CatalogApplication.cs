@@ -35,7 +35,7 @@ public interface ICatalogService
     Task<CatalogOperationResult<MenuSectionResponse>> RemoveSectionProductAsync(Guid merchantId, Guid sectionId, Guid productId, CatalogActor actor, CancellationToken ct);
     Task<CatalogOperationResult<MenuSectionResponse>> ReorderSectionProductsAsync(Guid merchantId, Guid sectionId, ReorderRequest request, CatalogActor actor, CancellationToken ct);
     Task<CatalogOperationResult<ProductResponse>> CreateProductAsync(Guid merchantId, CreateProductRequest request, CatalogActor actor, CancellationToken ct);
-    Task<CatalogOperationResult<ProductResponse>> GetProductAsync(Guid merchantId, Guid productId, bool publicOnly, string? language, CatalogActor actor, CancellationToken ct);
+    Task<CatalogOperationResult<CustomerProductDetailsResponse>> GetProductAsync(Guid merchantId, Guid productId, bool publicOnly, string? language, Guid? branchId, CatalogActor actor, CancellationToken ct);
     Task<CatalogOperationResult<ProductListResponse>> SearchProductsAsync(Guid merchantId, int page, int pageSize, string? query, Guid? categoryId, short? status, short? inventory, bool? visible, bool publicOnly, string? language, CatalogActor actor, CancellationToken ct);
     Task<CatalogOperationResult<ProductResponse>> UpdateProductAsync(Guid merchantId, Guid productId, UpdateProductRequest request, CatalogActor actor, CancellationToken ct);
     Task<CatalogOperationResult<ProductResponse>> ChangeProductAsync(Guid merchantId, Guid productId, string operation, Guid concurrencyStamp, short? inventory, CatalogActor actor, CancellationToken ct);

@@ -206,10 +206,11 @@ internal sealed class CatalogService(CatalogDbContext db, ICatalogRepository cat
         if (r.Sku is not null && await db.Products.AnyAsync(x => x.MerchantId == merchantId && x.Sku == r.Sku.Trim(), ct)) return Conflict<ProductResponse>("sku_exists");
         Product x = Product.Create(ProductId.New(), catalog.Id, merchantId, r.CategoryId.HasValue ? new CategoryId(r.CategoryId.Value) : null, r.Sku, r.BasePriceMinor, r.Currency, r.TaxCategoryReference, r.SortOrder, clock.UtcNow); x.SetTranslation(r.Translation.LanguageCode, r.Translation.Name, r.Translation.Description, clock.UtcNow); await products.AddAsync(x, ct); await db.SaveChangesAsync(ct); return CatalogOperation.Created(ToResponse(x, r.Translation.LanguageCode, catalog.DefaultLanguage));
     });
-    public async Task<CatalogOperationResult<ProductResponse>> GetProductAsync(Guid merchantId, Guid productId, bool publicOnly, string? language, CatalogActor actor, CancellationToken ct) => await Run(async () =>
+    public async Task<CatalogOperationResult<CustomerProductDetailsResponse>> GetProductAsync(Guid merchantId, Guid productId, bool publicOnly, string? language, Guid? branchId, CatalogActor actor, CancellationToken ct) => await Run(async () =>
     {
         Catalog.Domain.Catalog? catalog = await catalogs.GetAsync(merchantId, ct); Product? x = await products.GetAsync(merchantId, new ProductId(productId), false, ct); MerchantCatalogScope? scope = await merchants.GetScopeAsync(merchantId, actor.UserId, publicOnly || actor.IsPlatformOperator, ct);
-        if (catalog is null || x is null || scope is null || publicOnly && (catalog.Status != CatalogStatus.Active || !scope.MerchantIsActive || !x.IsPurchasable) || !publicOnly && !scope.CanManageMerchant) return NotFound<ProductResponse>(); return CatalogOperation.Success(ToResponse(x, language, catalog.DefaultLanguage));
+        if (catalog is null || x is null || scope is null || publicOnly && (catalog.Status != CatalogStatus.Active || !scope.MerchantIsActive || !x.IsPurchasable) || !publicOnly && !scope.CanManageMerchant) return NotFound<CustomerProductDetailsResponse>();
+        return CatalogOperation.Success(await ToCustomerDetailsResponse(x, language, catalog.DefaultLanguage, branchId, ct));
     });
     public async Task<CatalogOperationResult<ProductListResponse>> SearchProductsAsync(Guid merchantId, int page, int pageSize, string? query, Guid? categoryId, short? status, short? inventory, bool? visible, bool publicOnly, string? language, CatalogActor actor, CancellationToken ct) => await Run(async () =>
     {
@@ -390,5 +391,45 @@ internal sealed class CatalogService(CatalogDbContext db, ICatalogRepository cat
         return new(x.Id.Value, x.CatalogId.Value, x.MerchantId, x.SortOrder, x.IsVisible, x.AvailableFromUtc, x.AvailableUntilUtc, new(text.LanguageCode, text.Name, text.Description), x.Products.OrderBy(p => p.SortOrder).Select(p => p.ProductId.Value).ToArray(), x.ConcurrencyStamp);
     }
     private static ProductResponse ToResponse(Product x, string? language, string fallback) { ProductTranslation t = x.Translations.FirstOrDefault(v => v.LanguageCode == language) ?? x.Translations.FirstOrDefault(v => v.LanguageCode == fallback) ?? x.Translations.First(); return new(x.Id.Value, x.CatalogId.Value, x.MerchantId, x.CategoryId?.Value, x.Sku, x.BasePriceMinor, x.Currency, x.TaxCategoryReference, (short)x.Status, (short)x.InventoryStatus, x.SortOrder, x.IsVisible, x.IsFeatured, x.CurrentVersion, new(t.LanguageCode, t.Name, t.Description), x.CreatedAtUtc, x.UpdatedAtUtc, x.ConcurrencyStamp); }
+    private async Task<CustomerProductDetailsResponse> ToCustomerDetailsResponse(Product x, string? language, string fallback, Guid? branchId, CancellationToken ct)
+    {
+        ProductTranslation productText = Localized(x.Translations, language, fallback, value => value.LanguageCode);
+        var mediaItems = new List<CustomerProductMediaResponse>();
+        foreach (ProductImageReference image in x.Images.OrderBy(value => value.SortOrder).ThenBy(value => value.Id))
+        {
+            string? url = image.ExternalReference;
+            if (image.MediaId.HasValue)
+            {
+                MediaAssetReference? asset = await media.FindAsync(image.MediaId.Value, ct);
+                if (asset is { IsReady: true, IsDeleted: false } && asset.MerchantId == x.MerchantId && asset.OwnerType == "CatalogProduct" && asset.OwnerId == x.Id.Value && string.Equals(asset.AccessLevel, "Public", StringComparison.OrdinalIgnoreCase)) url = asset.ContentUrl;
+                else if (string.IsNullOrWhiteSpace(url)) continue;
+            }
+            if (!string.IsNullOrWhiteSpace(url)) mediaItems.Add(new(image.Id.Value, image.MediaId, url, image.AltText, image.SortOrder, image.IsPrimary));
+        }
+        CustomerProductVariantResponse[] variants = x.Variants
+            .Where(value => value.IsVisible)
+            .OrderBy(value => value.SortOrder).ThenBy(value => value.Id)
+            .Select(value =>
+            {
+                ProductVariantTranslation text = Localized(value.Translations, language, fallback, translation => translation.LanguageCode);
+                bool available = value.InventoryStatus is InventoryStatus.InStock or InventoryStatus.LowStock;
+                return new CustomerProductVariantResponse(value.Id.Value, new(text.LanguageCode, text.Name, null), value.PriceAdjustmentMinor, (short)value.InventoryStatus, value.IsDefault, available, value.SortOrder);
+            }).ToArray();
+        CustomerProductOptionGroupResponse[] groups = x.OptionGroups
+            .Where(value => value.IsVisible)
+            .OrderBy(value => value.SortOrder).ThenBy(value => value.Id)
+            .Select(value =>
+            {
+                OptionGroupTranslation text = Localized(value.Translations, language, fallback, translation => translation.LanguageCode);
+                CustomerProductOptionResponse[] options = value.Options.OrderBy(option => option.SortOrder).ThenBy(option => option.Id).Select(option =>
+                {
+                    ProductOptionTranslation optionText = Localized(option.Translations, language, fallback, translation => translation.LanguageCode);
+                    return new CustomerProductOptionResponse(option.Id.Value, new(optionText.LanguageCode, optionText.Name, null), option.PriceAdjustmentMinor, option.IsDefault, option.IsAvailable, option.SortOrder);
+                }).ToArray();
+                return new CustomerProductOptionGroupResponse(value.Id.Value, new(text.LanguageCode, text.Name, null), (short)value.SelectionType, value.IsRequired, value.MinSelections, value.MaxSelections, value.SortOrder, options);
+            }).ToArray();
+        return new(x.Id.Value, x.CatalogId.Value, x.MerchantId, x.CategoryId?.Value, x.Sku, x.BasePriceMinor, x.Currency, x.TaxCategoryReference, (short)x.Status, (short)x.InventoryStatus, x.SortOrder, x.IsVisible, x.IsFeatured, x.CurrentVersion, new(productText.LanguageCode, productText.Name, productText.Description), x.CreatedAtUtc, x.UpdatedAtUtc, x.ConcurrencyStamp, x.IsAvailableAt(clock.UtcNow, branchId), mediaItems, variants, groups);
+    }
+    private static T Localized<T>(IEnumerable<T> values, string? language, string fallback, Func<T, string> languageCode) where T : class => values.FirstOrDefault(value => languageCode(value) == language) ?? values.FirstOrDefault(value => languageCode(value) == fallback) ?? values.First();
     private static CatalogOperationResult<T> Invalid<T>(string code) => CatalogOperation.Failure<T>(CatalogOperationStatus.Invalid, code); private static CatalogOperationResult<T> Conflict<T>(string code = "concurrency_conflict") => CatalogOperation.Failure<T>(CatalogOperationStatus.Conflict, code); private static CatalogOperationResult<T> NotFound<T>() => CatalogOperation.Failure<T>(CatalogOperationStatus.NotFound, "not_found"); private static CatalogOperationResult<T> Forbidden<T>() => CatalogOperation.Failure<T>(CatalogOperationStatus.Forbidden, "forbidden");
 }

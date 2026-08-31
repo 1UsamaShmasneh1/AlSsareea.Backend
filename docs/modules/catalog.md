@@ -57,3 +57,21 @@ Management endpoints use dynamic `catalog.*` permissions and merchant scope vali
 Public endpoints expose only active, visible catalog data. Media upload and processing are
 Phase 8; pricing/promotions are Phase 9; carts are Phase 10; orders are Phase 11. Inventory
 quantities/reservations, tax calculation, payments, delivery, and UI remain outside Phase 7.
+
+## Customer product configuration contract
+
+`GET /api/v1/merchants/{merchantId}/catalog/products/{productId}` retains its public route
+and existing product fields while adding the customer-safe configuration tree needed by
+mobile clients. The response includes ordered public/external media references, visible
+variants with inventory-derived selectability, visible option groups with their canonical
+selection type and minimum/maximum limits, and option values including stable identifiers,
+availability, defaults, and signed price adjustments. Options are the Catalog concept used
+for optional modifiers; there is no separate modifier aggregate.
+
+The optional `branchId` query value is evaluated by the existing availability schedule logic
+and returned as `isAvailable`. Media-owned assets are resolved only through
+`IMediaAssetLookup`; only ready, non-deleted, public assets owned by the product produce a
+customer URL. Storage/provider metadata is never returned. Product, variant, option-group,
+and option IDs map directly to the existing Cart add-item request. Final configured prices
+remain authoritative through the existing product `price` endpoint. This contract expansion
+does not change persistence, authorization, or Catalog business rules.
