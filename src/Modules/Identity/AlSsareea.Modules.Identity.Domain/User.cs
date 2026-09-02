@@ -10,7 +10,7 @@ public sealed class User : AggregateRoot<UserId>
     private readonly List<RefreshToken> _refreshTokens = [];
     private readonly List<PasswordHistory> _passwordHistory = [];
 
-    private User(UserId id, UserType userType, Email? email, PhoneNumber? phoneNumber, PasswordHash passwordHash, DateTime createdUtc, UserId? createdByUserId)
+    private User(UserId id, UserType userType, Email? email, PhoneNumber? phoneNumber, PasswordHash? passwordHash, DateTime createdUtc, UserId? createdByUserId)
         : base(id)
     {
         UserType = userType;
@@ -22,7 +22,7 @@ public sealed class User : AggregateRoot<UserId>
         Status = UserStatus.PendingActivation;
         SecurityStamp = Guid.NewGuid();
         ConcurrencyStamp = Guid.NewGuid();
-        LastPasswordChangedUtc = createdUtc;
+        LastPasswordChangedUtc = passwordHash is null ? null : createdUtc;
         CreatedUtc = createdUtc;
         CreatedByUserId = createdByUserId;
     }
@@ -33,12 +33,12 @@ public sealed class User : AggregateRoot<UserId>
     public string? NormalizedEmail { get; private set; }
     public PhoneNumber? PhoneNumber { get; private set; }
     public string? NormalizedPhoneNumber { get; private set; }
-    public PasswordHash PasswordHash { get; private set; }
+    public PasswordHash? PasswordHash { get; private set; }
     public Guid SecurityStamp { get; private set; }
     public Guid ConcurrencyStamp { get; private set; }
     public int FailedLoginCount { get; private set; }
     public DateTime? LockoutEndUtc { get; private set; }
-    public DateTime LastPasswordChangedUtc { get; private set; }
+    public DateTime? LastPasswordChangedUtc { get; private set; }
     public DateTime CreatedUtc { get; private set; }
     public DateTime? UpdatedUtc { get; private set; }
     public DateTime? DeletedUtc { get; private set; }
@@ -57,6 +57,15 @@ public sealed class User : AggregateRoot<UserId>
         if (email is null && phoneNumber is null) throw new DomainException("An email address or phone number is required.");
         DomainRules.RequireUtc(createdUtc, nameof(createdUtc));
         var user = new User(id, userType, email, phoneNumber, passwordHash, createdUtc, createdByUserId);
+        user.RaiseDomainEvent(new UserCreatedDomainEvent(id, createdUtc));
+        return user;
+    }
+
+    public static User CreateExternal(UserId id, UserType userType, Email email, DateTime createdUtc)
+    {
+        if (!Enum.IsDefined(userType)) throw new DomainException("User type is invalid.");
+        DomainRules.RequireUtc(createdUtc, nameof(createdUtc));
+        var user = new User(id, userType, email, null, null, createdUtc, null);
         user.RaiseDomainEvent(new UserCreatedDomainEvent(id, createdUtc));
         return user;
     }
@@ -97,7 +106,8 @@ public sealed class User : AggregateRoot<UserId>
     public void ChangePassword(PasswordHash passwordHash, DateTime occurredUtc, UserId? actor = null)
     {
         EnsureNotDeleted(); DomainRules.RequireUtc(occurredUtc, nameof(occurredUtc));
-        _passwordHistory.Add(global::AlSsareea.Modules.Identity.Domain.PasswordHistory.Create(PasswordHistoryId.New(), Id, PasswordHash, LastPasswordChangedUtc, occurredUtc, occurredUtc));
+        if (PasswordHash is not null && LastPasswordChangedUtc is not null)
+            _passwordHistory.Add(global::AlSsareea.Modules.Identity.Domain.PasswordHistory.Create(PasswordHistoryId.New(), Id, PasswordHash.Value, LastPasswordChangedUtc.Value, occurredUtc, occurredUtc));
         PasswordHash = passwordHash; LastPasswordChangedUtc = occurredUtc; Touch(occurredUtc, actor); RotateSecurityStamp();
         RaiseDomainEvent(new UserPasswordChangedDomainEvent(Id, occurredUtc));
     }

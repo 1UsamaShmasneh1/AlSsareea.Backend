@@ -1,10 +1,13 @@
+using AlSsareea.Modules.Identity.Application;
 using Microsoft.AspNetCore.Hosting;
 using Microsoft.AspNetCore.Mvc.Testing;
 using Microsoft.Extensions.Configuration;
+using Microsoft.Extensions.DependencyInjection;
+using Microsoft.Extensions.DependencyInjection.Extensions;
 
 namespace AlSsareea.IntegrationTests;
 
-public sealed class ApiFactory(string connectionString, int loginPermitLimit = 1000, int otpPermitLimit = 1000) : WebApplicationFactory<Program>
+public sealed class ApiFactory(string connectionString, int loginPermitLimit = 1000, int otpPermitLimit = 1000, GoogleIdentity? googleIdentity = null) : WebApplicationFactory<Program>
 {
     protected override void ConfigureWebHost(IWebHostBuilder builder)
     {
@@ -33,6 +36,10 @@ public sealed class ApiFactory(string connectionString, int loginPermitLimit = 1
         builder.UseSetting("Authentication:PasswordHashing:Iterations", "100000");
         builder.UseSetting("Authentication:RateLimit:LoginPermitLimit", loginPermitLimit.ToString(System.Globalization.CultureInfo.InvariantCulture));
         builder.UseSetting("Authentication:RateLimit:OtpPermitLimit", otpPermitLimit.ToString(System.Globalization.CultureInfo.InvariantCulture));
+        builder.UseSetting("Authentication:RateLimit:RegistrationPermitLimit", "1000");
+        builder.UseSetting("Authentication:RateLimit:GooglePermitLimit", "1000");
+        builder.UseSetting("Authentication:Google:Enabled", googleIdentity is null ? "false" : "true");
+        builder.UseSetting("Authentication:Google:AllowedClientIds:0", "integration-tests.googleusercontent.com");
         builder.ConfigureAppConfiguration((_, configuration) =>
             configuration.AddInMemoryCollection(new Dictionary<string, string?>
             {
@@ -60,6 +67,24 @@ public sealed class ApiFactory(string connectionString, int loginPermitLimit = 1
                 ["Authentication:PasswordHashing:Iterations"] = "100000",
                 ["Authentication:RateLimit:LoginPermitLimit"] = loginPermitLimit.ToString(System.Globalization.CultureInfo.InvariantCulture),
                 ["Authentication:RateLimit:OtpPermitLimit"] = otpPermitLimit.ToString(System.Globalization.CultureInfo.InvariantCulture),
+                ["Authentication:RateLimit:RegistrationPermitLimit"] = "1000",
+                ["Authentication:RateLimit:GooglePermitLimit"] = "1000",
+                ["Authentication:Google:Enabled"] = googleIdentity is null ? "false" : "true",
+                ["Authentication:Google:AllowedClientIds:0"] = "integration-tests.googleusercontent.com",
             }));
+        if (googleIdentity is not null)
+            builder.ConfigureServices(services =>
+            {
+                services.RemoveAll<IGoogleIdentityValidator>();
+                services.AddSingleton<IGoogleIdentityValidator>(new FakeGoogleIdentityValidator(googleIdentity));
+            });
+    }
+
+    private sealed class FakeGoogleIdentityValidator(GoogleIdentity identity) : IGoogleIdentityValidator
+    {
+        public Task<AuthenticationResult<GoogleIdentity>> ValidateAsync(string idToken, string? nonce, CancellationToken cancellationToken) =>
+            Task.FromResult(idToken == "valid-google-token"
+                ? AuthenticationResult<GoogleIdentity>.Success(identity)
+                : AuthenticationResult<GoogleIdentity>.Failure(AuthenticationErrorCodes.ExternalTokenInvalid, 401));
     }
 }

@@ -31,7 +31,7 @@ internal sealed class UserConfiguration : IEntityTypeConfiguration<User>
         b.Property(x => x.NormalizedEmail).HasMaxLength(Email.MaximumLength);
         b.Property(x => x.PhoneNumber).HasConversion(x => x.HasValue ? x.Value.Value : null, x => x == null ? null : new PhoneNumber(x)).HasMaxLength(16);
         b.Property(x => x.NormalizedPhoneNumber).HasMaxLength(16);
-        b.Property(x => x.PasswordHash).HasConversion(x => x.Value, x => new PasswordHash(x)).HasMaxLength(PasswordHash.MaximumLength).IsRequired();
+        b.Property(x => x.PasswordHash).HasConversion(x => x.HasValue ? x.Value.Value : null, x => x == null ? null : new PasswordHash(x)).HasMaxLength(PasswordHash.MaximumLength);
         b.Property(x => x.SecurityStamp).HasColumnType("uuid");
         b.Property(x => x.ConcurrencyStamp).HasColumnType("uuid").IsConcurrencyToken();
         b.Property(x => x.LockoutEndUtc).Utc(); b.Property(x => x.LastPasswordChangedUtc).Utc(); b.Property(x => x.CreatedUtc).Utc(); b.Property(x => x.UpdatedUtc).Utc(); b.Property(x => x.DeletedUtc).Utc();
@@ -51,6 +51,24 @@ internal sealed class UserConfiguration : IEntityTypeConfiguration<User>
         b.HasOne<User>().WithMany().HasForeignKey(x => x.CreatedByUserId).OnDelete(DeleteBehavior.Restrict).HasConstraintName("fk_users_users_created_by_user_id");
         b.HasOne<User>().WithMany().HasForeignKey(x => x.UpdatedByUserId).OnDelete(DeleteBehavior.Restrict).HasConstraintName("fk_users_users_updated_by_user_id");
         b.HasOne<User>().WithMany().HasForeignKey(x => x.DeletedByUserId).OnDelete(DeleteBehavior.Restrict).HasConstraintName("fk_users_users_deleted_by_user_id");
+    }
+}
+
+internal sealed class ExternalIdentityConfiguration : IEntityTypeConfiguration<ExternalIdentity>
+{
+    public void Configure(EntityTypeBuilder<ExternalIdentity> b)
+    {
+        b.ToTable("external_identities", IdentityPersistenceConstants.Schema);
+        b.HasKey(x => x.Id).HasName("pk_external_identities");
+        b.Property(x => x.Id).IdentityId(x => x.Value, x => new ExternalIdentityId(x));
+        b.Property(x => x.UserId).IdentityId(x => x.Value, x => new UserId(x));
+        b.Property(x => x.Provider).HasMaxLength(32).IsRequired();
+        b.Property(x => x.ProviderSubject).HasMaxLength(255).IsRequired();
+        b.Property(x => x.CreatedUtc).Utc();
+        b.Property(x => x.LastUsedUtc).Utc();
+        b.HasIndex(x => new { x.Provider, x.ProviderSubject }).IsUnique().HasDatabaseName("ux_external_identities_provider_subject");
+        b.HasIndex(x => new { x.UserId, x.Provider }).IsUnique().HasDatabaseName("ux_external_identities_user_provider");
+        b.HasOne<User>().WithMany().HasForeignKey(x => x.UserId).OnDelete(DeleteBehavior.Restrict).HasConstraintName("fk_external_identities_users_user_id");
     }
 }
 

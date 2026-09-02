@@ -95,9 +95,11 @@ $env:Authentication__Jwt__Issuer = "https://identity.example.com"
 $env:Authentication__Jwt__Audience = "alssareea-clients"
 $env:Authentication__Jwt__SigningKey = "<at-least-32-random-bytes>"
 $env:Authentication__Otp__Pepper = "<at-least-32-random-bytes>"
+$env:Authentication__Google__Enabled = "true"
+$env:Authentication__Google__AllowedClientIds__0 = "<google-oauth-client-id>"
 ```
 
-The checked-in Development values are conspicuous local placeholders, not production credentials. Replace them with user secrets for shared development environments. `Authentication:Otp:DevelopmentProviderEnabled` must be false in Production; startup fails otherwise.
+The checked-in Development values are conspicuous local placeholders, not production credentials. Replace them with user secrets for shared development environments. `Authentication:Otp:DevelopmentProviderEnabled` must be false in Production; startup fails otherwise. Google is disabled by default and startup rejects an enabled provider without an allowed client ID; no Google client secret is used by this backend flow.
 
 ## Migrations
 
@@ -175,6 +177,8 @@ dotnet dev-certs https --trust
 | `GET` | `/health/ready` | Readiness, including Identity PostgreSQL connectivity |
 | `GET` | `/api/system/info` | Non-sensitive service metadata |
 | `POST` | `/api/v1/auth/login` | Password login and token issuance |
+| `POST` | `/api/v1/auth/register/customer` | Anonymous Customer-only email registration and token issuance |
+| `POST` | `/api/v1/auth/external/google` | Validate a Google ID token, resolve/create its Customer identity, and issue tokens |
 | `POST` | `/api/v1/auth/refresh` | Atomic refresh-token rotation |
 | `POST` | `/api/v1/auth/logout` | Revoke the current session |
 | `POST` | `/api/v1/auth/logout-all` | Revoke all sessions and rotate the security stamp |

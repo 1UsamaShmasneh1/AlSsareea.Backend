@@ -93,6 +93,14 @@ public readonly record struct SecurityAuditRecordId : IIdentityId
     public override string ToString() => Value.ToString();
 }
 
+public readonly record struct ExternalIdentityId : IIdentityId
+{
+    public ExternalIdentityId(Guid value) { Value = IdentityId.Validate(value, nameof(ExternalIdentityId)); }
+    public Guid Value { get; }
+    public static ExternalIdentityId New() => new(Guid.NewGuid());
+    public override string ToString() => Value.ToString();
+}
+
 internal static class IdentityId
 {
     internal static Guid Validate(Guid value, string typeName) => value != Guid.Empty
