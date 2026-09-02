@@ -168,6 +168,146 @@ public sealed class AuthenticationEndpointTests(PostgresFixture fixture)
         Assert.Equal(HttpStatusCode.TooManyRequests, response.StatusCode); Assert.True(response.Headers.Contains("Retry-After"));
     }
 
+    [Fact]
+    public async Task CustomerRegistrationCreatesActiveIdentitySessionAndSupportsProfileCreation()
+    {
+        string suffix = Guid.NewGuid().ToString("N");
+        string email = $"register-{suffix}@example.com";
+        HttpClient client = Client();
+        var request = new RegisterCustomerRequest(email, Password, new("registration-" + suffix, "Registration test", DevicePlatform.Android, "1.0", "15"));
+        using var message = new HttpRequestMessage(HttpMethod.Post, "/api/v1/auth/register/customer") { Content = JsonContent.Create(request) };
+        message.Headers.Add("Idempotency-Key", "registration-" + suffix);
+        HttpResponseMessage response = await client.SendAsync(message);
+        TokenResponse tokens = (await response.Content.ReadFromJsonAsync<TokenResponse>())!;
+        Assert.Equal(HttpStatusCode.Created, response.StatusCode);
+        Assert.Equal("Customer", tokens.User.UserType);
+        client.DefaultRequestHeaders.Authorization = new AuthenticationHeaderValue("Bearer", tokens.AccessToken);
+        HttpResponseMessage profile = await client.PostAsJsonAsync("/api/v1/customers/me/", new { firstName = "Test", lastName = "Customer", dateOfBirth = (DateOnly?)null });
+        Assert.Equal(HttpStatusCode.Created, profile.StatusCode);
+        TokenResponse refreshed = (await (await client.PostAsJsonAsync("/api/v1/auth/refresh", new RefreshRequest(tokens.RefreshToken, "registration-" + suffix))).Content.ReadFromJsonAsync<TokenResponse>())!;
+        Assert.NotEqual(tokens.RefreshToken, refreshed.RefreshToken);
+        Assert.Equal(HttpStatusCode.OK, (await client.PostAsJsonAsync("/api/v1/auth/login", Login(email) with { Device = Login(email).Device with { DeviceIdentifier = "registration-login-" + suffix } })).StatusCode);
+        await using AsyncServiceScope scope = fixture.ApiFactory.Services.CreateAsyncScope();
+        User user = await scope.ServiceProvider.GetRequiredService<IdentityDbContext>().Users.SingleAsync(x => x.NormalizedEmail == email);
+        Assert.Equal(UserStatus.Active, user.Status); Assert.Equal(UserType.Customer, user.UserType); Assert.NotNull(user.PasswordHash);
+    }
+
+    [Fact]
+    public async Task RegistrationRejectsDuplicateNormalizedEmailWithoutCreatingAnotherUser()
+    {
+        string suffix = Guid.NewGuid().ToString("N"); string email = $"duplicate-{suffix}@example.com"; HttpClient client = Client();
+        async Task<HttpResponseMessage> Register(string value, string key)
+        {
+            using var message = new HttpRequestMessage(HttpMethod.Post, "/api/v1/auth/register/customer") { Content = JsonContent.Create(new RegisterCustomerRequest(value, Password, new("duplicate-" + suffix, null, DevicePlatform.Android, null, null))) };
+            message.Headers.Add("Idempotency-Key", key); return await client.SendAsync(message);
+        }
+        Assert.Equal(HttpStatusCode.Created, (await Register(email, "register-first-" + suffix)).StatusCode);
+        HttpResponseMessage duplicate = await Register(email.ToUpperInvariant(), "register-second-" + suffix);
+        Assert.Equal(HttpStatusCode.Conflict, duplicate.StatusCode);
+        await using AsyncServiceScope scope = fixture.ApiFactory.Services.CreateAsyncScope();
+        Assert.Equal(1, await scope.ServiceProvider.GetRequiredService<IdentityDbContext>().Users.CountAsync(x => x.NormalizedEmail == email));
+    }
+
+    [Fact]
+    public async Task GoogleCreatesExternalOnlyCustomerThenReusesProviderSubject()
+    {
+        string suffix = Guid.NewGuid().ToString("N"); string email = $"google-{suffix}@example.com";
+        await using var factory = new ApiFactory(fixture.ConnectionString, googleIdentity: new("subject-" + suffix, email, "Google", "Customer"));
+        HttpClient client = factory.CreateClient(new Microsoft.AspNetCore.Mvc.Testing.WebApplicationFactoryClientOptions { BaseAddress = new Uri("https://localhost") });
+        var request = new GoogleAuthenticationRequest("valid-google-token", null, new("google-device-" + suffix, "Google test", DevicePlatform.Android, "1.0", "15"));
+        GoogleAuthenticationResponse first = (await (await client.PostAsJsonAsync("/api/v1/auth/external/google", request)).Content.ReadFromJsonAsync<GoogleAuthenticationResponse>())!;
+        GoogleAuthenticationResponse second = (await (await client.PostAsJsonAsync("/api/v1/auth/external/google", request)).Content.ReadFromJsonAsync<GoogleAuthenticationResponse>())!;
+        Assert.True(first.IsNewUser); Assert.False(second.IsNewUser); Assert.Equal(first.Tokens.User.Id, second.Tokens.User.Id);
+        await using AsyncServiceScope scope = factory.Services.CreateAsyncScope(); IdentityDbContext db = scope.ServiceProvider.GetRequiredService<IdentityDbContext>();
+        User user = await db.Users.SingleAsync(x => x.Id == new UserId(first.Tokens.User.Id));
+        Assert.Null(user.PasswordHash); Assert.Equal(1, await db.ExternalIdentities.CountAsync(x => x.UserId == user.Id));
+    }
+
+    [Fact]
+    public async Task GoogleNeverAutomaticallyLinksAnExistingEmailAccount()
+    {
+        string email = await SeedUserAsync(); string suffix = Guid.NewGuid().ToString("N");
+        await using var factory = new ApiFactory(fixture.ConnectionString, googleIdentity: new("collision-" + suffix, email.ToUpperInvariant(), null, null));
+        HttpClient client = factory.CreateClient(new Microsoft.AspNetCore.Mvc.Testing.WebApplicationFactoryClientOptions { BaseAddress = new Uri("https://localhost") });
+        HttpResponseMessage response = await client.PostAsJsonAsync("/api/v1/auth/external/google", new GoogleAuthenticationRequest("valid-google-token", null, new("collision-device-" + suffix, null, DevicePlatform.Android, null, null)));
+        Assert.Equal(HttpStatusCode.Conflict, response.StatusCode);
+        ProblemDetailsResponse problem = (await response.Content.ReadFromJsonAsync<ProblemDetailsResponse>())!;
+        Assert.Equal(AuthenticationErrorCodes.ExternalLinkRequired, problem.Code);
+    }
+
+    [Theory]
+    [InlineData("not-an-email", "Secure-Password-123")]
+    [InlineData("valid@example.test", "short")]
+    public async Task RegistrationRejectsInvalidEmailOrPassword(string email, string password)
+    {
+        HttpClient client = Client(); string suffix = Guid.NewGuid().ToString("N");
+        using var message = new HttpRequestMessage(HttpMethod.Post, "/api/v1/auth/register/customer") { Content = JsonContent.Create(new RegisterCustomerRequest(email, password, new("validation-" + suffix, null, DevicePlatform.Android, null, null))) };
+        message.Headers.Add("Idempotency-Key", "validation-" + suffix);
+        Assert.Equal(HttpStatusCode.BadRequest, (await client.SendAsync(message)).StatusCode);
+    }
+
+    [Fact]
+    public async Task RegistrationRejectsInvalidDeviceAndDuplicateSubmissionWithoutDuplicateUser()
+    {
+        string suffix = Guid.NewGuid().ToString("N"); string email = $"idempotent-{suffix}@example.com"; HttpClient client = Client();
+        async Task<HttpResponseMessage> Send(string device, string key)
+        {
+            using var message = new HttpRequestMessage(HttpMethod.Post, "/api/v1/auth/register/customer") { Content = JsonContent.Create(new RegisterCustomerRequest(email, Password, new(device, null, DevicePlatform.Android, null, null))) };
+            message.Headers.Add("Idempotency-Key", key); return await client.SendAsync(message);
+        }
+        Assert.Equal(HttpStatusCode.BadRequest, (await Send("bad", "invalid-device-" + suffix)).StatusCode);
+        string stableKey = "stable-registration-" + suffix;
+        Assert.Equal(HttpStatusCode.Created, (await Send("valid-device-" + suffix, stableKey)).StatusCode);
+        Assert.Equal(HttpStatusCode.Conflict, (await Send("valid-device-" + suffix, stableKey)).StatusCode);
+        await using AsyncServiceScope scope = fixture.ApiFactory.Services.CreateAsyncScope();
+        Assert.Equal(1, await scope.ServiceProvider.GetRequiredService<IdentityDbContext>().Users.CountAsync(x => x.NormalizedEmail == email));
+    }
+
+    [Fact]
+    public async Task PublicRegistrationIgnoresAttemptedPrivilegedUserType()
+    {
+        string suffix = Guid.NewGuid().ToString("N"); string email = $"type-{suffix}@example.com"; HttpClient client = Client();
+        using var message = new HttpRequestMessage(HttpMethod.Post, "/api/v1/auth/register/customer") { Content = JsonContent.Create(new { email, password = Password, userType = "SuperAdministrator", device = new LoginDeviceRequest("type-device-" + suffix, null, DevicePlatform.Android, null, null) }) };
+        message.Headers.Add("Idempotency-Key", "type-registration-" + suffix);
+        Assert.Equal(HttpStatusCode.Created, (await client.SendAsync(message)).StatusCode);
+        await using AsyncServiceScope scope = fixture.ApiFactory.Services.CreateAsyncScope();
+        Assert.Equal(UserType.Customer, (await scope.ServiceProvider.GetRequiredService<IdentityDbContext>().Users.SingleAsync(x => x.NormalizedEmail == email)).UserType);
+    }
+
+    [Fact]
+    public async Task GoogleInvalidTokenAndDisabledProviderFailSafely()
+    {
+        var request = new GoogleAuthenticationRequest("invalid-token", null, new("google-invalid-device", null, DevicePlatform.Android, null, null));
+        HttpResponseMessage unavailable = await Client().PostAsJsonAsync("/api/v1/auth/external/google", request);
+        Assert.Equal(HttpStatusCode.ServiceUnavailable, unavailable.StatusCode);
+        await using var factory = new ApiFactory(fixture.ConnectionString, googleIdentity: new("invalid-subject", "invalid@example.test", null, null));
+        HttpClient enabled = factory.CreateClient(new Microsoft.AspNetCore.Mvc.Testing.WebApplicationFactoryClientOptions { BaseAddress = new Uri("https://localhost") });
+        Assert.Equal(HttpStatusCode.Unauthorized, (await enabled.PostAsJsonAsync("/api/v1/auth/external/google", request)).StatusCode);
+    }
+
+    [Fact]
+    public async Task DisabledGoogleLinkedAccountCannotAuthenticate()
+    {
+        string suffix = Guid.NewGuid().ToString("N"); string email = $"disabled-google-{suffix}@example.com"; string subject = "disabled-" + suffix; DateTime now = DateTime.UtcNow;
+        await using (AsyncServiceScope scope = fixture.ApiFactory.Services.CreateAsyncScope())
+        {
+            IdentityDbContext db = scope.ServiceProvider.GetRequiredService<IdentityDbContext>(); User user = User.CreateExternal(UserId.New(), UserType.Customer, new Email(email), now); user.Disable(now); db.AddRange(user, ExternalIdentity.Create(ExternalIdentityId.New(), user.Id, "google", subject, now)); await db.SaveChangesAsync();
+        }
+        await using var factory = new ApiFactory(fixture.ConnectionString, googleIdentity: new(subject, email, null, null)); HttpClient client = factory.CreateClient(new Microsoft.AspNetCore.Mvc.Testing.WebApplicationFactoryClientOptions { BaseAddress = new Uri("https://localhost") });
+        Assert.Equal(HttpStatusCode.Unauthorized, (await client.PostAsJsonAsync("/api/v1/auth/external/google", new GoogleAuthenticationRequest("valid-google-token", null, new("disabled-device-" + suffix, null, DevicePlatform.Android, null, null)))).StatusCode);
+    }
+
+    [Fact]
+    public async Task ConcurrentFirstGoogleSignInCreatesOneUserAndOneExternalIdentity()
+    {
+        string suffix = Guid.NewGuid().ToString("N"); string email = $"concurrent-google-{suffix}@example.com"; string subject = "concurrent-" + suffix;
+        await using var factory = new ApiFactory(fixture.ConnectionString, googleIdentity: new(subject, email, "First", "Last")); HttpClient client = factory.CreateClient(new Microsoft.AspNetCore.Mvc.Testing.WebApplicationFactoryClientOptions { BaseAddress = new Uri("https://localhost") });
+        Task<HttpResponseMessage>[] requests = Enumerable.Range(0, 2).Select(index => client.PostAsJsonAsync("/api/v1/auth/external/google", new GoogleAuthenticationRequest("valid-google-token", null, new($"concurrent-device-{suffix}-{index}", null, DevicePlatform.Android, null, null)))).ToArray();
+        HttpResponseMessage[] responses = await Task.WhenAll(requests); Assert.All(responses, response => Assert.Equal(HttpStatusCode.OK, response.StatusCode));
+        await using AsyncServiceScope scope = factory.Services.CreateAsyncScope(); IdentityDbContext db = scope.ServiceProvider.GetRequiredService<IdentityDbContext>();
+        Assert.Equal(1, await db.Users.CountAsync(x => x.NormalizedEmail == email)); Assert.Equal(1, await db.ExternalIdentities.CountAsync(x => x.Provider == "google" && x.ProviderSubject == subject));
+    }
+
     private async Task<string> SeedUserAsync(bool withPermissions = true)
     {
         await using AsyncServiceScope scope = fixture.ApiFactory.Services.CreateAsyncScope(); IdentityDbContext db = scope.ServiceProvider.GetRequiredService<IdentityDbContext>(); IPasswordHasher hasher = scope.ServiceProvider.GetRequiredService<IPasswordHasher>(); DateTime now = DateTime.UtcNow; string suffix = Guid.NewGuid().ToString("N"); string email = $"auth-{suffix}@example.com";

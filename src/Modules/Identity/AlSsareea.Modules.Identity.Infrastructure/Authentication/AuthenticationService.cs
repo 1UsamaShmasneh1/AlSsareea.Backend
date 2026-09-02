@@ -19,6 +19,7 @@ internal sealed partial class AuthenticationService(
     IOtpGenerator otpGenerator,
     IOtpHasher otpHasher,
     IOtpDeliveryProvider otpDeliveryProvider,
+    IGoogleIdentityValidator googleIdentityValidator,
     TokenGenerator tokenGenerator,
     IOptions<AuthenticationOptions> authenticationOptions,
     IOptions<LockoutOptions> lockoutOptions,
@@ -58,7 +59,9 @@ internal sealed partial class AuthenticationService(
             return AuthenticationResult<TokenResponse>.Failure(AuthenticationErrorCodes.AccountUnavailable, 401);
         }
 
-        PasswordVerificationResult verification = passwordHasher.Verify(request.Password, user.PasswordHash.Value);
+        PasswordVerificationResult verification = user.PasswordHash is null
+            ? PasswordVerificationResult.Failed
+            : passwordHasher.Verify(request.Password, user.PasswordHash.Value.Value);
         if (verification == PasswordVerificationResult.Failed)
         {
             DateTime lockoutEnd = now.AddMinutes(_lockout.LockoutMinutes);
@@ -112,6 +115,100 @@ internal sealed partial class AuthenticationService(
         GeneratedAccessToken access = tokenGenerator.GenerateAccessToken(user, session.Id, roles, permissions, now);
         LogAuthenticationSucceeded(logger, user.Id.Value, session.Id.Value);
         return AuthenticationResult<TokenResponse>.Success(new TokenResponse("Bearer", access.Token, access.ExpiresInSeconds, generatedRefresh.RawToken, refreshToken.ExpiresUtc, session.Id.Value, new AuthenticatedUserResponse(user.Id.Value, user.UserType.ToString())));
+    }
+
+    public async Task<AuthenticationResult<TokenResponse>> RegisterCustomerAsync(RegisterCustomerRequest request, string idempotencyKey, AuthenticationRequestContext context, CancellationToken cancellationToken)
+    {
+        if (!IsPasswordInputValid(request.Password) || request.Device is null)
+            return AuthenticationResult<TokenResponse>.Failure("auth.validation_failed", 400);
+
+        Email email;
+        try { email = new Email(request.Email); }
+        catch (DomainException) { return AuthenticationResult<TokenResponse>.Failure("auth.validation_failed", 400); }
+
+        string fingerprint = TokenGenerator.Sha256(email.Normalized + ":" + TokenGenerator.Sha256(request.Password) + ":" + request.Device.DeviceIdentifier);
+        IdempotencyRecord? prior = await FindIdempotencyAsync(email.Normalized, "customer.register", idempotencyKey, cancellationToken);
+        if (prior is not null)
+            return AuthenticationResult<TokenResponse>.Failure(FixedEquals(prior.RequestFingerprint, fingerprint) ? AuthenticationErrorCodes.EmailAlreadyRegistered : AuthenticationErrorCodes.IdempotencyConflict, 409);
+        if (await db.Users.AsNoTracking().AnyAsync(x => x.NormalizedEmail == email.Normalized, cancellationToken))
+            return AuthenticationResult<TokenResponse>.Failure(AuthenticationErrorCodes.EmailAlreadyRegistered, 409);
+
+        DateTime now = clock.UtcNow;
+        await using var transaction = await db.Database.BeginTransactionAsync(System.Data.IsolationLevel.Serializable, cancellationToken);
+        try
+        {
+            var user = User.Create(UserId.New(), UserType.Customer, email, null, new PasswordHash(passwordHasher.Hash(request.Password).EncodedHash), now);
+            user.Activate(now);
+            db.Users.Add(user);
+            db.IdempotencyRecords.Add(IdempotencyRecord.Create(IdempotencyRecordId.New(), email.Normalized, "customer.register", TokenGenerator.Sha256(idempotencyKey), fingerprint, user.Id.Value.ToString(), now, now.AddHours(24)));
+            AuthenticationResult<TokenResponse> result = await CreateSessionAsync(user, request.Device, email.Normalized, context, cancellationToken);
+            if (!result.Succeeded) { await transaction.RollbackAsync(cancellationToken); return result; }
+            await transaction.CommitAsync(cancellationToken);
+            return result;
+        }
+        catch (DbUpdateException)
+        {
+            await transaction.RollbackAsync(cancellationToken);
+            db.ChangeTracker.Clear();
+            return AuthenticationResult<TokenResponse>.Failure(AuthenticationErrorCodes.EmailAlreadyRegistered, 409);
+        }
+    }
+
+    public async Task<AuthenticationResult<GoogleAuthenticationResponse>> AuthenticateWithGoogleAsync(GoogleAuthenticationRequest request, AuthenticationRequestContext context, CancellationToken cancellationToken)
+    {
+        if (request.Device is null)
+            return AuthenticationResult<GoogleAuthenticationResponse>.Failure("auth.validation_failed", 400);
+        AuthenticationResult<GoogleIdentity> validation = await googleIdentityValidator.ValidateAsync(request.IdToken, request.Nonce, cancellationToken);
+        if (!validation.Succeeded)
+            return AuthenticationResult<GoogleAuthenticationResponse>.Failure(validation.ErrorCode!, validation.StatusCode);
+
+        GoogleIdentity identity = validation.Value!;
+        Email email;
+        try { email = new Email(identity.Email); }
+        catch (DomainException) { return AuthenticationResult<GoogleAuthenticationResponse>.Failure(AuthenticationErrorCodes.ExternalTokenInvalid, 401); }
+        const string provider = "google";
+        DateTime now = clock.UtcNow;
+        ExternalIdentity? external = await db.ExternalIdentities.SingleOrDefaultAsync(x => x.Provider == provider && x.ProviderSubject == identity.Subject, cancellationToken);
+        bool isNewUser = false;
+        User? user;
+
+        if (external is not null)
+        {
+            user = await db.Users.SingleOrDefaultAsync(x => x.Id == external.UserId, cancellationToken);
+            if (user?.Status != UserStatus.Active)
+                return AuthenticationResult<GoogleAuthenticationResponse>.Failure(AuthenticationErrorCodes.AccountUnavailable, 401);
+            external.RecordUse(now);
+        }
+        else
+        {
+            if (await db.Users.AsNoTracking().AnyAsync(x => x.NormalizedEmail == email.Normalized, cancellationToken))
+                return AuthenticationResult<GoogleAuthenticationResponse>.Failure(AuthenticationErrorCodes.ExternalLinkRequired, 409);
+            user = User.CreateExternal(UserId.New(), UserType.Customer, email, now);
+            user.Activate(now);
+            external = ExternalIdentity.Create(ExternalIdentityId.New(), user.Id, provider, identity.Subject, now);
+            db.Users.Add(user); db.ExternalIdentities.Add(external);
+            isNewUser = true;
+        }
+
+        try
+        {
+            AuthenticationResult<TokenResponse> session = await CreateSessionAsync(user, request.Device, email.Normalized, context, cancellationToken);
+            if (!session.Succeeded)
+                return AuthenticationResult<GoogleAuthenticationResponse>.Failure(session.ErrorCode!, session.StatusCode);
+            return AuthenticationResult<GoogleAuthenticationResponse>.Success(new(session.Value!, isNewUser, email.Value, identity.GivenName, identity.FamilyName));
+        }
+        catch (DbUpdateException) when (isNewUser)
+        {
+            db.ChangeTracker.Clear();
+            external = await db.ExternalIdentities.AsNoTracking().SingleOrDefaultAsync(x => x.Provider == provider && x.ProviderSubject == identity.Subject, cancellationToken);
+            if (external is null)
+                return AuthenticationResult<GoogleAuthenticationResponse>.Failure(AuthenticationErrorCodes.ExternalLinkRequired, 409);
+            user = await db.Users.SingleAsync(x => x.Id == external.UserId, cancellationToken);
+            AuthenticationResult<TokenResponse> session = await CreateSessionAsync(user, request.Device, email.Normalized, context, cancellationToken);
+            return session.Succeeded
+                ? AuthenticationResult<GoogleAuthenticationResponse>.Success(new(session.Value!, false, email.Value, identity.GivenName, identity.FamilyName))
+                : AuthenticationResult<GoogleAuthenticationResponse>.Failure(session.ErrorCode!, session.StatusCode);
+        }
     }
 
     public async Task<AuthenticationResult<TokenResponse>> RefreshAsync(RefreshRequest request, AuthenticationRequestContext context, CancellationToken cancellationToken)
@@ -216,6 +313,35 @@ internal sealed partial class AuthenticationService(
         string[] roles = await (from ur in db.UserRoles.AsNoTracking() join role in db.Roles.AsNoTracking() on ur.RoleId equals role.Id where ur.UserId == userId && role.IsActive select role.NormalizedName).Distinct().ToArrayAsync(ct);
         string[] permissions = await (from ur in db.UserRoles.AsNoTracking() join role in db.Roles.AsNoTracking() on ur.RoleId equals role.Id join rp in db.RolePermissions.AsNoTracking() on role.Id equals rp.RoleId join permission in db.Permissions.AsNoTracking() on rp.PermissionId equals permission.Id where ur.UserId == userId && role.IsActive && permission.IsActive select permission.NormalizedName).Distinct().ToArrayAsync(ct);
         return (roles, permissions);
+    }
+
+    private async Task<AuthenticationResult<TokenResponse>> CreateSessionAsync(User user, LoginDeviceRequest request, string identifier, AuthenticationRequestContext context, CancellationToken ct)
+    {
+        DeviceIdentifier deviceIdentifier;
+        try { deviceIdentifier = new DeviceIdentifier(request.DeviceIdentifier); }
+        catch (DomainException) { return AuthenticationResult<TokenResponse>.Failure("auth.validation_failed", 400); }
+        DateTime now = clock.UtcNow;
+        Device? device = await db.Devices.SingleOrDefaultAsync(x => x.UserId == user.Id && x.DeviceIdentifier == deviceIdentifier, ct);
+        if (device is null)
+        {
+            device = Device.Register(DeviceId.New(), user.Id, deviceIdentifier, request.Platform, request.DeviceName, request.AppVersion, request.OperatingSystemVersion, now);
+            db.Devices.Add(device);
+        }
+        else
+        {
+            if (device.IsRevoked) return AuthenticationResult<TokenResponse>.Failure(AuthenticationErrorCodes.AccountUnavailable, 401);
+            device.UpdateLastSeen(now);
+        }
+        var session = LoginSession.Start(LoginSessionId.New(), user.Id, device.Id, now, now.AddDays(_authentication.SessionDays), ParseIp(context.IpAddress), context.UserAgent);
+        GeneratedRefreshToken generated = TokenGenerator.GenerateRefreshToken();
+        var refresh = RefreshToken.Create(RefreshTokenId.New(), user.Id, device.Id, session.Id, generated.Hash, user.SecurityStamp, now, now.AddDays(_authentication.RefreshTokenDays), ParseIp(context.IpAddress), Guid.NewGuid());
+        db.LoginSessions.Add(session); db.RefreshTokens.Add(refresh);
+        db.LoginHistory.Add(CreateLoginHistory(user.Id, device.Id, session.Id, identifier, LoginResult.Succeeded, null, context));
+        AddAudit("session.created", user.Id, session.Id, device.Id, context, "success");
+        await db.SaveChangesAsync(ct);
+        (string[] roles, string[] permissions) = await LoadAuthorizationAsync(user.Id, ct);
+        GeneratedAccessToken access = tokenGenerator.GenerateAccessToken(user, session.Id, roles, permissions, now);
+        return AuthenticationResult<TokenResponse>.Success(new("Bearer", access.Token, access.ExpiresInSeconds, generated.RawToken, refresh.ExpiresUtc, session.Id.Value, new(user.Id.Value, user.UserType.ToString())));
     }
 
     private async Task<IdempotencyOutcome> EnsureIdempotencyAsync(string owner, string operation, string key, string fingerprintSource, string? resourceId, CancellationToken ct)

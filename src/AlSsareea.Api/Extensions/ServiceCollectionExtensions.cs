@@ -99,6 +99,8 @@ public static class ServiceCollectionExtensions
             AddFixedWindow(options, "auth-login", rateLimits.LoginPermitLimit, rateLimits.WindowSeconds);
             AddFixedWindow(options, "auth-refresh", rateLimits.RefreshPermitLimit, rateLimits.WindowSeconds);
             AddFixedWindow(options, "auth-otp", rateLimits.OtpPermitLimit, rateLimits.WindowSeconds);
+            AddFixedWindow(options, "auth-registration", rateLimits.RegistrationPermitLimit, rateLimits.WindowSeconds);
+            AddFixedWindow(options, "auth-google", rateLimits.GooglePermitLimit, rateLimits.WindowSeconds);
             AddFixedWindow(options, "customers-self-write", 30, 60);
             AddFixedWindow(options, "customers-address-write", 30, 60);
             AddFixedWindow(options, "customers-admin-read", 120, 60);

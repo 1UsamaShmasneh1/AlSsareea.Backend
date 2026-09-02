@@ -21,6 +21,7 @@ public sealed class IdentityDbContext(DbContextOptions<IdentityDbContext> option
     public DbSet<OtpChallenge> OtpChallenges => Set<OtpChallenge>();
     public DbSet<IdempotencyRecord> IdempotencyRecords => Set<IdempotencyRecord>();
     public DbSet<SecurityAuditRecord> SecurityAuditRecords => Set<SecurityAuditRecord>();
+    public DbSet<ExternalIdentity> ExternalIdentities => Set<ExternalIdentity>();
 
     public override int SaveChanges(bool acceptAllChangesOnSuccess)
     {

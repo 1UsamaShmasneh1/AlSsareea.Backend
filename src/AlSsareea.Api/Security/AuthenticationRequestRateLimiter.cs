@@ -9,7 +9,7 @@ using Microsoft.Extensions.Options;
 
 namespace AlSsareea.Api.Security;
 
-internal enum AuthenticationRateLimitKind { Login, Refresh, OtpGeneration, OtpVerification }
+internal enum AuthenticationRateLimitKind { Login, Refresh, OtpGeneration, OtpVerification, Registration, Google }
 internal readonly record struct AuthenticationRateLimitDecision(bool IsAllowed, TimeSpan? RetryAfter);
 
 internal sealed class AuthenticationRequestRateLimiter : IAsyncDisposable
@@ -18,6 +18,8 @@ internal sealed class AuthenticationRequestRateLimiter : IAsyncDisposable
     private readonly PartitionedRateLimiter<string> _refresh;
     private readonly PartitionedRateLimiter<string> _otpGeneration;
     private readonly PartitionedRateLimiter<string> _otpVerification;
+    private readonly PartitionedRateLimiter<string> _registration;
+    private readonly PartitionedRateLimiter<string> _google;
 
     public AuthenticationRequestRateLimiter(IOptions<AuthenticationRateLimitOptions> options)
     {
@@ -26,20 +28,22 @@ internal sealed class AuthenticationRequestRateLimiter : IAsyncDisposable
         _refresh = Create(value.RefreshPermitLimit, value.WindowSeconds);
         _otpGeneration = Create(value.OtpPermitLimit, value.WindowSeconds);
         _otpVerification = Create(value.OtpPermitLimit, value.WindowSeconds);
+        _registration = Create(value.RegistrationPermitLimit, value.WindowSeconds);
+        _google = Create(value.GooglePermitLimit, value.WindowSeconds);
     }
 
     public async ValueTask<AuthenticationRateLimitDecision> AcquireAsync(AuthenticationRateLimitKind kind, HttpContext context, string subject, string deviceIdentifier, CancellationToken cancellationToken)
     {
-        string normalizedSubject = kind is AuthenticationRateLimitKind.Login or AuthenticationRateLimitKind.OtpGeneration ? NormalizeIdentifier(subject) : subject;
+        string normalizedSubject = kind is AuthenticationRateLimitKind.Login or AuthenticationRateLimitKind.OtpGeneration or AuthenticationRateLimitKind.Registration ? NormalizeIdentifier(subject) : subject;
         string key = Hash(string.Join('\u001f', context.Connection.RemoteIpAddress?.ToString() ?? "unknown", normalizedSubject, deviceIdentifier.Trim().ToLowerInvariant(), kind.ToString()));
-        PartitionedRateLimiter<string> limiter = kind switch { AuthenticationRateLimitKind.Login => _login, AuthenticationRateLimitKind.Refresh => _refresh, AuthenticationRateLimitKind.OtpGeneration => _otpGeneration, _ => _otpVerification };
+        PartitionedRateLimiter<string> limiter = kind switch { AuthenticationRateLimitKind.Login => _login, AuthenticationRateLimitKind.Refresh => _refresh, AuthenticationRateLimitKind.OtpGeneration => _otpGeneration, AuthenticationRateLimitKind.OtpVerification => _otpVerification, AuthenticationRateLimitKind.Registration => _registration, _ => _google };
         using RateLimitLease lease = await limiter.AcquireAsync(key, 1, cancellationToken);
         return new AuthenticationRateLimitDecision(lease.IsAcquired, lease.TryGetMetadata(MetadataName.RetryAfter, out TimeSpan retryAfter) ? retryAfter : null);
     }
 
     public async ValueTask DisposeAsync()
     {
-        await _login.DisposeAsync(); await _refresh.DisposeAsync(); await _otpGeneration.DisposeAsync(); await _otpVerification.DisposeAsync();
+        await _login.DisposeAsync(); await _refresh.DisposeAsync(); await _otpGeneration.DisposeAsync(); await _otpVerification.DisposeAsync(); await _registration.DisposeAsync(); await _google.DisposeAsync();
     }
 
     private static PartitionedRateLimiter<string> Create(int permitLimit, int windowSeconds) => PartitionedRateLimiter.Create<string, string>(key => RateLimitPartition.GetFixedWindowLimiter(key, _ => new FixedWindowRateLimiterOptions { PermitLimit = permitLimit, Window = TimeSpan.FromSeconds(windowSeconds), QueueLimit = 0, AutoReplenishment = true }));

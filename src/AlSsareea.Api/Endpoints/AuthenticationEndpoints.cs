@@ -10,6 +10,8 @@ internal static class AuthenticationEndpoints
     {
         RouteGroupBuilder auth = endpoints.MapGroup("/api/v1/auth").WithTags("Authentication");
         auth.MapPost("/login", LoginAsync).RequireRateLimiting("auth-login").AllowAnonymous();
+        auth.MapPost("/register/customer", RegisterCustomerAsync).RequireRateLimiting("auth-registration").AllowAnonymous();
+        auth.MapPost("/external/google", GoogleAsync).RequireRateLimiting("auth-google").AllowAnonymous();
         auth.MapPost("/refresh", RefreshAsync).RequireRateLimiting("auth-refresh").AllowAnonymous();
         auth.MapPost("/logout", LogoutAsync).RequireAuthorization();
         auth.MapPost("/logout-all", LogoutAllAsync).RequireAuthorization();
@@ -19,6 +21,27 @@ internal static class AuthenticationEndpoints
         auth.MapPost("/otp/challenges", CreateOtpAsync).RequireRateLimiting("auth-otp").AllowAnonymous();
         auth.MapPost("/otp/challenges/{challengeId:guid}/verify", VerifyOtpAsync).RequireRateLimiting("auth-otp").AllowAnonymous();
         return endpoints;
+    }
+
+    private static async Task<IResult> RegisterCustomerAsync(RegisterCustomerRequest request, HttpContext context, IAuthenticationService service, AuthenticationRequestRateLimiter limiter, CancellationToken cancellationToken)
+    {
+        if (request.Device is null) return Problem("auth.validation_failed", 400);
+        string? key = IdempotencyKey(context); if (key is null) return Problem("idempotency.key_required", 400);
+        IResult? limited = await ApplyRateLimitAsync(limiter, AuthenticationRateLimitKind.Registration, context, request.Email, request.Device.DeviceIdentifier, cancellationToken); if (limited is not null) return limited;
+        AuthenticationResult<TokenResponse> result = await service.RegisterCustomerAsync(request, key, Context(context), cancellationToken);
+        if (!result.Succeeded) return Problem(result.ErrorCode!, result.StatusCode);
+        context.Response.Headers.CacheControl = "no-store"; context.Response.Headers.Pragma = "no-cache";
+        return Results.Created("/api/v1/auth/me", result.Value);
+    }
+
+    private static async Task<IResult> GoogleAsync(GoogleAuthenticationRequest request, HttpContext context, IAuthenticationService service, AuthenticationRequestRateLimiter limiter, CancellationToken cancellationToken)
+    {
+        if (request.Device is null || string.IsNullOrWhiteSpace(request.IdToken)) return Problem("auth.validation_failed", 400);
+        IResult? limited = await ApplyRateLimitAsync(limiter, AuthenticationRateLimitKind.Google, context, TokenSubject(request.IdToken), request.Device.DeviceIdentifier, cancellationToken); if (limited is not null) return limited;
+        AuthenticationResult<GoogleAuthenticationResponse> result = await service.AuthenticateWithGoogleAsync(request, Context(context), cancellationToken);
+        if (!result.Succeeded) return Problem(result.ErrorCode!, result.StatusCode);
+        context.Response.Headers.CacheControl = "no-store"; context.Response.Headers.Pragma = "no-cache";
+        return Results.Ok(result.Value);
     }
 
     private static async Task<IResult> LoginAsync(LoginRequest request, HttpContext httpContext, IAuthenticationService service, AuthenticationRequestRateLimiter limiter, CancellationToken cancellationToken)

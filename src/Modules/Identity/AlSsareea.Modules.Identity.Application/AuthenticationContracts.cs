@@ -22,6 +22,10 @@ public static class AuthenticationErrorCodes
     public const string OtpDeliveryUnavailable = "auth.otp_delivery_unavailable";
     public const string Forbidden = "authorization.forbidden";
     public const string IdempotencyConflict = "idempotency.key_conflict";
+    public const string EmailAlreadyRegistered = "auth.email_already_registered";
+    public const string ExternalTokenInvalid = "auth.external_token_invalid";
+    public const string ExternalProviderUnavailable = "auth.external_provider_unavailable";
+    public const string ExternalLinkRequired = "auth.external_link_required";
 }
 
 public sealed class AuthenticationOptions
@@ -73,7 +77,16 @@ public sealed class AuthenticationRateLimitOptions
     public int LoginPermitLimit { get; init; } = 10;
     public int RefreshPermitLimit { get; init; } = 20;
     public int OtpPermitLimit { get; init; } = 5;
+    public int RegistrationPermitLimit { get; init; } = 5;
+    public int GooglePermitLimit { get; init; } = 10;
     public int WindowSeconds { get; init; } = 60;
+}
+
+public sealed class GoogleAuthenticationOptions
+{
+    public const string SectionName = "Authentication:Google";
+    public bool Enabled { get; init; }
+    public string[] AllowedClientIds { get; init; } = [];
 }
 
 public enum PasswordVerificationResult { Failed = 0, Success = 1, SuccessRehashNeeded = 2 }
@@ -115,10 +128,13 @@ public interface ICurrentUser
 
 public sealed record LoginDeviceRequest(string DeviceIdentifier, string? DeviceName, DevicePlatform Platform, string? AppVersion, string? OperatingSystemVersion);
 public sealed record LoginRequest(string Identifier, string Password, LoginDeviceRequest Device);
+public sealed record RegisterCustomerRequest(string Email, string Password, LoginDeviceRequest Device);
+public sealed record GoogleAuthenticationRequest(string IdToken, string? Nonce, LoginDeviceRequest Device);
 public sealed record RefreshRequest(string RefreshToken, string DeviceIdentifier);
 public sealed record OtpChallengeRequest(string Destination, OtpPurpose Purpose, string DeviceIdentifier);
 public sealed record OtpVerifyRequest(string Code, string DeviceIdentifier);
 public sealed record TokenResponse(string TokenType, string AccessToken, int ExpiresIn, string RefreshToken, DateTime RefreshTokenExpiresUtc, Guid SessionId, AuthenticatedUserResponse User);
+public sealed record GoogleAuthenticationResponse(TokenResponse Tokens, bool IsNewUser, string Email, string? GivenName, string? FamilyName);
 public sealed record AuthenticatedUserResponse(Guid Id, string UserType);
 public sealed record SessionResponse(Guid SessionId, string? DeviceName, string? Platform, DateTime StartedUtc, DateTime LastActivityUtc, string State, bool IsCurrent);
 public sealed record CurrentUserResponse(Guid Id, string UserType, IReadOnlySet<string> Roles, IReadOnlySet<string> Permissions);
@@ -133,9 +149,25 @@ public sealed record AuthenticationResult<T>(bool Succeeded, T? Value, string? E
 
 public sealed record AuthenticationRequestContext(string? IpAddress, string? UserAgent, string CorrelationId);
 
+public sealed record GoogleIdentity(string Subject, string Email, string? GivenName, string? FamilyName);
+public sealed record GoogleTokenClaims(string Subject, string Email, bool EmailVerified, string Issuer, string Audience, DateTime ExpirationUtc, string? GivenName, string? FamilyName, string? Nonce);
+public sealed record GoogleTokenVerification(bool Succeeded, bool ProviderAvailable, GoogleTokenClaims? Claims);
+
+public interface IGoogleTokenVerifier
+{
+    Task<GoogleTokenVerification> VerifyAsync(string idToken, CancellationToken cancellationToken);
+}
+
+public interface IGoogleIdentityValidator
+{
+    Task<AuthenticationResult<GoogleIdentity>> ValidateAsync(string idToken, string? nonce, CancellationToken cancellationToken);
+}
+
 public interface IAuthenticationService
 {
     Task<AuthenticationResult<TokenResponse>> LoginAsync(LoginRequest request, AuthenticationRequestContext context, CancellationToken cancellationToken);
+    Task<AuthenticationResult<TokenResponse>> RegisterCustomerAsync(RegisterCustomerRequest request, string idempotencyKey, AuthenticationRequestContext context, CancellationToken cancellationToken);
+    Task<AuthenticationResult<GoogleAuthenticationResponse>> AuthenticateWithGoogleAsync(GoogleAuthenticationRequest request, AuthenticationRequestContext context, CancellationToken cancellationToken);
     Task<AuthenticationResult<TokenResponse>> RefreshAsync(RefreshRequest request, AuthenticationRequestContext context, CancellationToken cancellationToken);
     Task<AuthenticationResult<CurrentUserResponse>> GetCurrentUserAsync(UserId userId, CancellationToken cancellationToken);
     Task<IReadOnlyList<SessionResponse>> GetSessionsAsync(UserId userId, LoginSessionId currentSessionId, CancellationToken cancellationToken);
