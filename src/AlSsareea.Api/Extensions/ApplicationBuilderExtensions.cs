@@ -27,7 +27,7 @@ public static class ApplicationBuilderExtensions
             app.MapOpenApi();
         }
 
-        if (!app.Environment.IsEnvironment("Testing"))
+        if (!app.Environment.IsDevelopment() && !app.Environment.IsEnvironment("Testing"))
         {
             app.UseHttpsRedirection();
         }
